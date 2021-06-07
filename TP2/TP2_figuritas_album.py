@@ -1,4 +1,4 @@
-# ---- GUIA 2. Parte 2 FIGURITAS ----
+# ---- GUIA 2. Parte 1 FIGURITAS ----
 
 
 # Punto 2
