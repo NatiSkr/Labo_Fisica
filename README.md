@@ -4,6 +4,8 @@ Paquetes necesarios para ejecutar los códigos:
 - numpy
 - scipy
 - matplotlib
+- imageio
+- panda
 
 Se pueden instalar con pip, que a su vez podes chequear si lo tenes instalado en la consola con el comando:
 'py -m pip --version' en Windows
