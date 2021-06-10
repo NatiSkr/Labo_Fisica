@@ -1,17 +1,19 @@
-# ---- GUIA 2. Parte 1 FIGURITAS ----
+# ---- GUIA 2. Parte 1 Llenar albums con figuras individuales ----
 
 import random
 import numpy as np
-import matplotlib.pyplot as plt  # importo para graficar
+import matplotlib.pyplot as plt
 album_size = int(input('Escriba la cantidad de espacios disponibles para completar en el album: '))
 pack_size = int(input('Escriba la cantidad de figuras contenidas en un pack: '))
 repeat_n_times = int(input('Escriba la cantidad de albums a completar secuencialmente: '))
 print('\n')
 
 # Punto 2 - Establecer un máximo puntaje de las figuras y devolver un valor entre [1:maximo
-def generate_random_card(max_figuras=6):  # antes llamada comprar_una_figu
+def generate_random_card(max_cards=6):  # antes llamada comprar_una_figu
     # aleatoriamente sacar un numero entre 1 :max_figus
-    return random.randint(1, max_figuras)
+    return random.randint(1, max_cards)
+    # devuelvo un int con el numero de figura / card
+
 
 # Test funcion generate_random_card
 """ dar un valor maximo de figura (min=1)
@@ -24,23 +26,23 @@ print('2 Abrí el paquete y salio la figura ', figu)
 """
 
 
-# Punto 3 ¿Cuantas figuras tengo que completar la serie 1 : ls limite superior?
-def complete_single_album(max_figuras):
+# Punto 3 ¿Con cuantas figuras aleatorias completo el album?
+def complete_single_album(max_cards):
     # Establecer tamaño de lista 'album' con 'max_figuras' y llenarla con ceros
     album = []
-    for i in range(max_figuras):
+    for i in range(max_cards):
         album.append(0)
     figuras_compradas = 0  # contador. Cantidad de figuras que compro hasta completar lista 'album'
     # Si el numero de figura se corresponde con un lugar vacio de la lista 'album'
     # colocar un 1 en dicho lugar de la lista
     # sacar una figura aleatoriamente y actualizar contador hasta que cada elemento del album tenga un 1
-    while sum(album) < max_figuras:
-        figu = generate_random_card(max_figuras)
+    while sum(album) < max_cards:
+        figu = generate_random_card(max_cards)
         figuras_compradas = figuras_compradas + 1
         if album[figu - 1] == 0:
             album[figu - 1] = 1
     return figuras_compradas
-    # devuelvo cantidad de compras para completar album (integer)
+    # devuelvo cantidad de compras para completar album (int)
 
 
 # Test funcion cuantas_completar
@@ -53,35 +55,34 @@ print('Se lleno el album de', album_size, 'espacios '+
 
 # Punto 4  -  Si lleno varios albums secuencialmente, no al mismo tiempo compartiendo figuras
 # ¿Cuantas figuras compre hasta completar cada album?
-def complete_all_albums(n_repeticiones, max_cards):
+def complete_all_albums(max_cards, n_repeticiones):
     cant_por_album = []
     # Ejecutar complete_single_album hasta completar las repeticiones
     for i in range(0, n_repeticiones):
-        cant = complete_single_album(max_cards)  # agregar la cant de figuras compradas por llenado de album a una lista 'n'
-        cant_por_album.append(cant)  # hasta que se terminen las repeticiones
+        cant = complete_single_album(max_cards)
+        cant_por_album.append(cant)
     return cant_por_album
+    # devuelve una lista con la cantidad de figuras "compradas" hasta completar cada album.
 
 
 # Punto 5 Chequear funcionamiento de las funciones anteriores
 """
-secuencia1 = complete_all_albums(repeat_n_times, album_size)
+secuencia1 = complete_all_albums(album_size, repeat_n_times)
 print('Para llenar', repeat_n_times, 'albums de', album_size, 'espacios,',
         'se compraron en promedio', round(np.mean(secuencia1),2), 'figuras por album')
 print('Detalle: ', secuencia1)
 """
 
 
-# ---- GUIA 2. Parte 2 PAQUETES ----------------------------------------------------------
-
+# ---- GUIA 2. Parte 2 Llenar albums con paquetes de figuras ----------------------------------------------------------
 
 # Punto 1: ya esta realizado en la parte 1, punto 2 con la funcion 'generate_random_card'
 # Ahora genero paquetes con figuras aleatorias
 
-# Punto 2
-# Implementar una funcion donde se genera un paquete 'pack_list' de figuritas al azar.
+# Punto 2 genero paquetes con figuras aleatorias
 # La cantidad de figuras en un paquete debe ser independiente de la cantidad de espacios que se pueden llenar en album
 
-def generate_card_pack(contents_per_pack, max_cards):
+def generate_card_pack(max_cards, contents_per_pack):
     pack_list = []
     for i in range(0, contents_per_pack):
         figu_pack = generate_random_card(max_cards)
@@ -89,48 +90,43 @@ def generate_card_pack(contents_per_pack, max_cards):
     return pack_list
 
 # Test generate_card_pack
-# print('se armo un paquete ',generate_card_pack(pack_size, album_size))
+# print('se armo un paquete ',generate_card_pack(album_size, pack_size))
 
 
 # Punto 3
-# Implementar una funcion 'complete_album_withPacks(max_cards,cards_per_pack)'
-# que dado el tamanio del album simule su llenado y devuelva cuantos paquetes se debieron adquirir para completarlo
+# Implementar una funcion que simule completar 1 album y devuelva cuantos paquetes se debieron adquirir para completarlo
 
-def complete_album_withPacks(cards_per_pack, max_cards):
-    complete_album = []
+def fill_album_withPacks(max_cards, cards_per_pack):
+    album_status = []
     for i in range(max_cards):
-        complete_album.append(0)
-    paq_comprados = 0
-    while sum(complete_album) < max_cards:
-        paquete = generate_card_pack(max_cards, cards_per_pack)
-        paq_comprados = paq_comprados + 1
-        for figura in paquete:
-            if complete_album[figura - 1] == 0:
-                complete_album[figura - 1] = 1
-    return paq_comprados
+        album_status.append(0)
+    generated_packs = 0
+    while sum(album_status) < max_cards:
+        pack = generate_card_pack(max_cards, cards_per_pack)
+        generated_packs = generated_packs + 1
+        for card in pack:
+            if album_status[card - 1] == 0:
+                album_status[card - 1] = 1
+    return generated_packs
+
+# Test
+# print('Para llenar el album se debio comprar', fill_album_withPacks(album_size, pack_size), 'paquetes')
 
 
-print('Para llenar el album se debio comprar', complete_album_withPacks(pack_size, album_size), 'paquetes')
+# Punto 4 Completar con paquetes todos los albums
+def fill_all_withPacks(max_cards, cards_per_pack, n_repeats):
+    cantPacks_perAlbum = []
+    for i in range(0, n_repeats):
+        cant = fill_album_withPacks(max_cards, cards_per_pack)
+        cantPacks_perAlbum.append(cant)
+    return cantPacks_perAlbum
 
 
-# Punto 4
-# Calcular n_repeticiones=100 veces la funcion cuantos paquetes
-# Utilizar max_cards=669, cards_per_pack=5 y guardar resultados obtenidos en una lista. Calcular su promedio.
-
-def cantidad_promedio(n_repeticiones, max_cards, cards_per_pack):
-    # HAGO UNA FUNCION QUE ME DEVUELVA UNA LISTA 'n'
-    # DONDE SUS ELEMENTOS SON LA CANTIDAD DE PAQUETES QUE COMPRE PARA LLENAR CADA ALBUM
-    lista_cant_por_album = []
-    for i in range(0, n_repeticiones):
-        cant = complete_album_withPacks(max_cards, cards_per_pack)
-        lista_cant_por_album.append(cant)
-    return lista_cant_por_album
-
-
-# Para una cierta cantidad de repeticiones 'n_repeticiones':
-# agregar la cantidad de paquetes comprados por llenado de album a una lista 'n' hasta que se terminen las repeticiones
-promedio_compras = cantidad_promedio(100, 669, 5)
-print('Se compraron en promedio', np.mean(promedio_compras), 'paquetes para llenar cada album')
+# Test fill_all_withPacks
+"""
+secuencia2 = fill_all_withPacks(album_size, pack_size, repeat_n_times)
+print('Se compraron en promedio', round(np.mean(secuencia2),2), 'paquetes para llenar cada album')
+"""
 
 
 # ----------------------------------------------------------------------------------------
@@ -139,28 +135,16 @@ print('Se compraron en promedio', np.mean(promedio_compras), 'paquetes para llen
 # ---- GUIA 2. Parte 3 HISTOGRAMAS ----
 
 # Retomo las ultimas funciones de la guia de Figuritas:
-# n_paquetes=complete_album_withPacks(max_cards,cards_per_pack)
-# Ahora armo una nueva función que ejecute un 'experimento', cuyo resultado almaceno en una variable tipo lista donde
-# cada elemento es la cantidad de paquetes comprados:
-def experimento(max_cards, cards_per_pack, n_repeticiones):
-    # En realidad es la misma funcion que cantidad_promedio pero con otro nombre (se pedia armar una nueva función)
-    lista_exp = []
-    for i in range(0, n_repeticiones):
-        cant = complete_album_withPacks(max_cards, cards_per_pack)
-        lista_exp.append(cant)
-    return lista_exp
-
-
-print(experimento(669, 5, 10))
 
 # Consigna 1: Calcular para 5, 20, 50, 100, 200, y 1000 repeticiones:
 # el promedio, el desvío estándar y el error estándar de la media.
+
 lista_cant_rep = [5, 20, 50, 100, 200, 1000]
 # Hago un ciclo con 'for' que tome los elementos de 'lista_cant_rep' como los valores de 'n_repeticiones'
-# cuando uso la funcion 'experimento' y le pido que imprima la media, el desvio estandar y el error estandar.
+# cuando uso la funcion 'fill_all_withPacks' y le pido que imprima la media, el desvio estandar y el error estandar.
 # Recordatorio: n_repeticiones es la cantidad de veces que llene un album
 for cant_rep in lista_cant_rep:
-    res = experimento(669, 5, cant_rep)
+    res = fill_all_withPacks(669, 5, cant_rep)
     media = np.mean(res)  # promedio aritmetico
     desvio_std = np.std(res, ddof=1)  # desviacion estandar muestral (,ddof=1)
     error_std = desvio_std / np.sqrt(cant_rep)  # dispersion estandar del promedio
@@ -185,7 +169,7 @@ fuente_titulo = {'family': 'serif',
 # fin diccionario
 for cant_rep in lista_cant_rep[1:]:  # ignoro el primer N de repeticion por ser muy chico
     random.seed(0)  # "fijo" los numeros pseudo-aletorios para garantizar reproducibilidad
-    datos = experimento(669, 5, cant_rep)
+    datos = fill_all_withPacks(669, 5, cant_rep)
     N_bines = int(np.sqrt(cant_rep))
     plt.hist(datos, bins=N_bines, edgecolor='darkgray', color='lightgreen')
     plt.xlabel('Cantidad de paquetes')
@@ -198,7 +182,7 @@ for cant_rep in lista_cant_rep[1:]:  # ignoro el primer N de repeticion por ser 
 lista_promedios = []
 random.seed()  # decido "fijar" los numeros aleatorios para que el experimento sea reproducible
 for i in range(50):
-    rep = experimento(669, 5, 50)
+    rep = fill_all_withPacks(669, 5, 50)
     promedio = np.mean(rep)
     lista_promedios.append(promedio)
 
@@ -238,7 +222,7 @@ print('--Información adicional de 1 experimento con 50 repeticiones-- Promedio=
 def repetir_experimento(max_cards, cards_per_pack, n_repeticiones, n_rep_exp):
     promedios_n_experimentos = []
     for n in range(n_rep_exp):
-        lista_promedio_exp_individual = experimento(max_cards, cards_per_pack, n_repeticiones)
+        lista_promedio_exp_individual = fill_all_withPacks(max_cards, cards_per_pack, n_repeticiones)
         promedio_exp_individual = np.mean(lista_promedio_exp_individual)
         promedios_n_experimentos.append(promedio_exp_individual)
     return promedios_n_experimentos
