@@ -9,7 +9,7 @@ repeat_n_times = int(input('Escriba la cantidad de albums a completar secuencial
 print('\n')
 
 # Punto 2 - Establecer un máximo puntaje de las figuras y devolver un valor entre [1:maximo
-def generate_random_card(max_cards=6):  # antes llamada comprar_una_figu
+def generate_random_card(max_cards=6):  # antes llamada generate_random_card
     # aleatoriamente sacar un numero entre 1 :max_figus
     return random.randint(1, max_cards)
     # devuelvo un int con el numero de figura / card
@@ -120,6 +120,8 @@ def fill_all_withPacks(max_cards, cards_per_pack, n_repeats):
         cant = fill_album_withPacks(max_cards, cards_per_pack)
         cantPacks_perAlbum.append(cant)
     return cantPacks_perAlbum
+    "devuelve lista donde cada elemento es un int que representa la cantidad de paquetes adquiridos" \
+    "por cada album que se completo"
 
 
 # Test fill_all_withPacks
@@ -140,54 +142,81 @@ print('Se compraron en promedio', round(np.mean(secuencia2),2), 'paquetes para l
 # el promedio, el desvío estándar y el error estándar de la media.
 
 lista_cant_rep = [5, 20, 50, 100, 200, 1000]
+
 # Hago un ciclo con 'for' que tome los elementos de 'lista_cant_rep' como los valores de 'n_repeticiones'
 # cuando uso la funcion 'fill_all_withPacks' y le pido que imprima la media, el desvio estandar y el error estandar.
 # Recordatorio: n_repeticiones es la cantidad de veces que llene un album
-for cant_rep in lista_cant_rep:
-    res = fill_all_withPacks(669, 5, cant_rep)
-    media = np.mean(res)  # promedio aritmetico
-    desvio_std = np.std(res, ddof=1)  # desviacion estandar muestral (,ddof=1)
-    error_std = desvio_std / np.sqrt(cant_rep)  # dispersion estandar del promedio
-    print('Con', cant_rep, 'repeticiones, obtengo media=', media,
-          ';desvio estandar=', round(desvio_std, 2),
-          ';error estandar=', round(error_std, 2))
 
-# Consigna 2: Para valor de repetición (excepto 5) hacer el histograma.
-# Es importante detallar los ejes y el valor de N en el título.
-# En las notas de texto detallar el valor del tamanio del *bin* o factor de clase.
-# Hacer los histogramas para cada valor de repeticiones excepto 5. Es decir, la distribucion de compra de paquetes.
-print('Numeros de repeticiones N sobre las que hago los histogramas:', lista_cant_rep[1:])
+def stadistics_fill_all_withPacks(max_cards, contents_per_pack, n_repeats_list):
+    media = []
+    desvio_std = []
+    error_std = []
+    indice = 0
+    for cant_rep in n_repeats_list:
+        # Llenar una serie de albums y conseguir la lista de paquetes necesarios para llebarlos
+        filled_albums = fill_all_withPacks(max_cards, contents_per_pack, cant_rep)
+        # Promedio aritmetico
+        media.append(np.mean(filled_albums))
+        # Desviacion estandar muestral (ddof = delta degrees of freedom)
+        desvio_std.append(round(np.std(filled_albums, ddof = 1), 4))
+        # Dispersión estandar del promedio
+        error_std.append(round(desvio_std[indice] / np.sqrt(cant_rep), 4))
+        # Actualizo indice para recorrer lista de serie de repeticiones
+        indice = indice + 1
+    return media, desvio_std, error_std
+    # devuelve listas con estadisticos
+
+
+promedio, d_std, e_std = stadistics_fill_all_withPacks(album_size, pack_size, lista_cant_rep)
+print(promedio)
+print(d_std)
+print(e_std)
+
+# Consigna 2: Para valor de repetición (excepto 5) hacer el histograma. Es decir, la distribucion de compra de paquetes.
+print('\n Numeros de repeticiones N sobre las que hago los histogramas:', lista_cant_rep[1:], '\n')
 # ignora primer elemento de la lista, considero que su valor es muy bajo para analizarlo estadisticamente
 
 plt.style.use('seaborn-white')  # determino estilo de grafico
-# Uso un diccionario para cambiar el formato del titulo porque no me gusta el original
+
+# Implemento un diccionario para cambiar el formato del titulo
 fuente_titulo = {'family': 'serif',
                  'color': 'darkslategray',
                  'weight': 'normal',
                  'size': 14
                  }
-# fin diccionario
-for cant_rep in lista_cant_rep[1:]:  # ignoro el primer N de repeticion por ser muy chico
+
+
+"""
+for cant_rep in lista_cant_rep[1:]:  # ignoro el primer N de la lista de repeticion por ser muy bajo
     random.seed(0)  # "fijo" los numeros pseudo-aletorios para garantizar reproducibilidad
-    datos = fill_all_withPacks(669, 5, cant_rep)
-    N_bines = int(np.sqrt(cant_rep))
-    plt.hist(datos, bins=N_bines, edgecolor='darkgray', color='lightgreen')
-    plt.xlabel('Cantidad de paquetes')
-    plt.ylabel('Repeticiones observadas')
-    plt.title('Distribucion de frecuencia para N=' + str(cant_rep), fontdict=fuente_titulo)
+    datos = fill_all_withPacks(album_size, pack_size, cant_rep)
+    plt.hist(datos,
+             bins = int(np.sqrt(cant_rep)),
+             edgecolor = 'darkgray',
+             color = 'lightgreen')
+    plt.xlabel('Paquetes adquiridos para completar un album')
+    plt.ylabel('Frecuencia absoluta')
+    plt.title('Distribucion de frecuencia \n de compra de paquetes. N=' + str(cant_rep), fontdict=fuente_titulo)
     plt.show()
+"""
 
-# Consigna 3 Repetir 50 veces el experimento con 50 repeticiones y graficar el histograma conla distribución
-# de los promedios (resultado de cada experimento). Responder en un cuadro de texto las preguntas
+
+# Consigna 3 Llenar 50 veces 50 albums
+# y graficar el histograma con la distribución de los promedios (resultado de cada experimento)
+
 lista_promedios = []
-random.seed()  # decido "fijar" los numeros aleatorios para que el experimento sea reproducible
+random.seed(0)  # decido "fijar" los numeros aleatorios para que el experimento sea reproducible
 for i in range(50):
-    rep = fill_all_withPacks(669, 5, 50)
-    promedio = np.mean(rep)
-    lista_promedios.append(promedio)
+    promedio, d_std, e_std = stadistics_fill_all_withPacks(album_size, pack_size, [50])
+    promedio_i = np.mean(promedio[0])
+    lista_promedios.append(promedio_i)
 
 
-# print(lista_promedios)
+print(promedio[0])
+print(d_std[0])
+print(e_std[0])
+
+print(lista_promedios)
 
 # Defino mi funcion gaussiana
 # x son los datos.mu es la media. sigma es la std. N es el numero de datos. bines son los bin_edges del histograma.
@@ -200,7 +229,7 @@ def gaussiana(x, mu, sigma, N, bines):
 # defino calculos de media, mediana, desviacion estandar
 media = np.mean(lista_promedios)
 dest = np.std(lista_promedios, ddof=1)
-error_std = desvio_std / np.sqrt(50)
+error_std = dest / np.sqrt(50)
 N_rep = 50  # N numero de datos, es decir la cantidad de repeticiones
 N_bines = 10  # cant bines
 counts, bin_edges = np.histogram(lista_promedios, bins=N_bines)
@@ -231,7 +260,7 @@ def repetir_experimento(max_cards, cards_per_pack, n_repeticiones, n_rep_exp):
 realizar_n_exp = repetir_experimento(669, 5, 50, 50)
 media = np.mean(realizar_n_exp)
 dest = np.std(realizar_n_exp, ddof=1)
-error_std = desvio_std / np.sqrt(50)
+error_std = dest / np.sqrt(50)
 # print(len(realizar_n_exp),realizar_n_exp)
 # chequeo que vuelque en la lista los 50 elementos (promedios de cada experimento individual)
 plt.hist(realizar_n_exp, bins=N_bines, edgecolor='darkgray', color='purple', density=True)
@@ -254,7 +283,7 @@ print('--Información adicional de 50 experimentos con 50 repeticiones-- Promedi
 def compro_varias_figuras(cant_compras):
     stock_figus = []
     for c in range(cant_compras):
-        figu = comprar_una_figu(669)  # sigo pensando en un album con un tamanio de 669 espacios
+        figu = generate_random_card(669)  # sigo pensando en un album con un tamanio de 669 espacios
         stock_figus.append(figu)
     return stock_figus
 
