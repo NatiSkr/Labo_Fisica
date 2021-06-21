@@ -1,374 +1,358 @@
-# -*- coding: utf-8 -*-
-# ---- GUIA 4 ÓRBITAS ----
+# ---- GUIDE 4 - ORBITS ----
 
-"""  EJERCICIO 1
-Consideramos que la Tierra comienza moviendose en la
-direccion del eje y. Definamos las posiciones en x e y como listas donde iremos guardando las posiciones futuras:
+"""  EXERCISE 1
+Consider that at a given moment the Earth starts moving on the direction of the y axis
+Let's first define some positions as lists and constants.
+Be sure to explicit the magnitude of vectors as the type "float" in order for np.sqrt() to work.
 
-*   `x_lista = [-147095000000.0, -147095000000.0]` (atencion que es necesario poner el .0 decimal para que se pueda usar np.sqrt() para la raız cuadrada)
-*   `y_lista = [0.0, 2617920000.0]`
-*   `dt = 60 * 60 * 24` (para que el paso del tiempo sea un dıa en segundos).
-*   `tiempo_total = 400` (para simular un poco mas de un año.)
-*   `x_sol = 0, y_sol = 0` (recuerden que consideramos quieto al Sol)
+*   `r_x_earth = [-147095000000.0, -147095000000.0]`
+*   `r_y_earth = [0.0, 2617920000.0]`
+*   `dt = 60 * 60 * 24` (Earth day in seconds).
+*   `total_earth_days = 400` (simulate a bit more than 1 Earth Year)
+*   `x_sol = 0, y_sol = 0` (Suppose that the center of the system , the Sun, is fixed)
 
-
-Para realizar la simulacion, primero definamos funciones que devuelvan la aceleracion tomando las posiciones actuales
-del Sol y la Tierra, usando las ecuaciones de la figura:
-
-* La funcion `calcula_delta(x sol, x tierra)` que recibe dos posiciones en una dimension (x o y)
-y retorna la diferencia entre ambas
-
-* La funcion `calcula_distancia(pos sol,pos tierra)`, que recibe dos listas, una con la posicion [x sol,y sol]
-y otra con la posicion [x tierra,y tierra] y retorna la distancia entre ambas.
-
-*La funcion `calcula_aceleracion(pos sol,pos tierra)` que recibe dos listas, una con la posicion [x sol,y sol]
-y otra con la posicion [x tierra,y tierra] y usando las dos funciones anteriores, calcula la aceleracion gravitatoria,
-retornando una lista con dos valores [aceleracion x,aceleracion y].
+To simulate the movement of the planet around the Sun, define some functions that return the acceleration
+Use the positions of both celestial bodies (refer to the doc to see formulas)
 """
 
-#IMPORTO LIBRERIAS / PAQUETES
+# Libraries
 import numpy as np
-# Tambien podria usar Scipy https://docs.scipy.org/doc/scipy/reference/constants.html
-# pero no me quiero arriesgar a usar como variable algo que este contenido en esa lib
-
-#DECLARO VARIABLES
-G = 6.693*10**-11 # Constante de gravitacion. Unidades N*m^2/kg^2
-M = 1.98*10**30 # Masa del Sol, unidades=kg
-
-delta_t = 60 * 60 * 24 #para que el paso del tiempo sea un dıa pero medido en segundos
-tiempo_total = 400 #años simuladores (para simular un poco mas de un año.)
-
-#posicion inicial de la tierra en metros. Del tiempo 't= -dt' al tiempo 't=0', la posición cambió pero solo en, no en x
-x_lista = [-147095000000.0, -147095000000.0]
-y_lista = [0.0, 2617920000.0]
-
-#posicion sol
-r_Sol=[0,0] #consideramos quieto al Sol
-
-#Armo las primeras funciones
-def calcular_delta(sol_1D, tierra_1D):  #tomo como referencia el sol que en mi sistemas de referencia va a estar fijo
-  delta = sol_1D - tierra_1D
-  return delta
-
-def calcular_distancia(pos_sol, pos_tierra): #imput: dos listas de dos elementos
-  #Formato pos_sol=[x_sol,y_sol]
-  #Formato pos_tierra[x_tierra,y_tierra]
-  if len(pos_sol)==len(pos_tierra)==2: #chequeo que esten en los mismos espacios vectoriales
-    distancia = np.sqrt( (pos_sol[0] - pos_tierra[0])**2 + (pos_sol[1] - pos_tierra[1])**2 )
-    return distancia #me devuelve un 'int' o 'float' como coordenadas vectoriales de la diferencia de distancia
-  else: return print('Las coordenadas de posicion estan en espacios diferentes')
-r_Tierra_0 = [x_lista[1], y_lista[1]]
-print(calcular_distancia(r_Sol, r_Tierra_0))
-
-def calcula_aceleracion(pos_sol,pos_tierra): #imput: dos listas de dos elementos. Calcula las aceleraciones instantaneas
-#usando las dos funciones anteriores, calcula la aceleracion gravitatoria,
-# retornando una lista con dos valores [aceleracion x,aceleracion y].
-  aceleracion = []
-  d = calcular_distancia(pos_sol,pos_tierra)  #almaceno resultado 'list'
-  x = calcular_delta(pos_sol[0], pos_tierra[0]) #almaceno resultado 'int' o 'float'
-  y = calcular_delta(pos_sol[1], pos_tierra[1]) #almaceno resultado 'int' o 'float'
-  aceleracion_x = ( (G*M) / d**2) * ( x / d) 
-  aceleracion_y = ( (G*M) / d**2) * ( y / d)
-  aceleracion = [aceleracion_x, aceleracion_y]
-  return aceleracion
-
-tierra0=[-147095000000.0,0]
-tierra1 = [-147095000000.0, 2617920000.0]
-print(calcula_aceleracion(r_Sol,tierra0))
-print(calcula_aceleracion(r_Sol,tierra1))
-
-"""## EJERCICIO 2
-Definan las variables y funciones a utilizar y, usando las funciones, calculen las dos primeras aceleraciones correspondientes a las dos primeras posiciones dadas.
-
-Nota: esto ya lo empece en el punto anterior, en la siguiente celda solo hago el calculo usando las dos primeras posiciones
-
-"""
-
-#Listas donde almaceno las dos primeras aceleraciones para usar con verlet
-lista_aceleracion_x =[]
-lista_aceleracion_y =[]
-
-r_Tierra_ant = [x_lista[0], y_lista[0]] #posicion de la tierra antes del instante cero
-aceleraciones = calcula_aceleracion ( r_Sol , r_Tierra_ant )
-lista_aceleracion_x.append ( aceleraciones[0] )
-lista_aceleracion_y.append ( aceleraciones[1] )
-
-r_Tierra_0 = [x_lista[1], y_lista[1]] #posicion de la tierra en t=0
-aceleraciones = calcula_aceleracion ( r_Sol , r_Tierra_0 )
-lista_aceleracion_x.append ( aceleraciones[0] )
-lista_aceleracion_y.append ( aceleraciones[1] )
-
-print('aceleraciones en x (m/s^2)',lista_aceleracion_x)
-print('aceleraciones en y (m/s^2)',lista_aceleracion_y)
-print('Dias de medicion [0,1]')
-
-"""## EJERCICIO 3
-Defina la funcion `realizar_verlet(pos anterior,pos actual,aceleracion actual,dt)`, que recibe dos posiciones en forma de listas, `pos_anterior= [x anterior,y anterior]`, `pos_actual=[x actual,y actual]`, y la `aceleracion_actual=[aceleracion x,aceleracion y]`, y usando las ecuaciones de la figura devuelva `pos_posterior = [x posterior,y posterior]`.
-"""
-
-def realizar_verlet(pos_anterior,pos_actual,aceleracion_actual,dt):
-  pos_posterior = []
-  pos_x = 2*pos_actual[0] - pos_anterior[0] + aceleracion_actual[0]*dt**2  # me da la nueva posicion en x (indice 0)
-  pos_y = 2*pos_actual[1] - pos_anterior[1] + aceleracion_actual[1]*dt**2  # me da la nueva posicion en y (indice 1)
-  pos_posterior = [pos_x, pos_y]
-  return pos_posterior # devuelve lista [x posterior,y posterior] con las nuevas posiciones de la Tierra
-
-#test
-
-anterior = (x_lista[0],y_lista[0])
-actual = (x_lista[1],y_lista[1])
-aceleracion = calcula_aceleracion(r_Sol,actual)
-realizar_verlet(anterior,actual,aceleracion,delta_t)
-
-"""## EJERCICIO 4
-Realice un ciclo que utilizando la funcion realiza verlet vaya calculando y guardando la trayectoria terrestre, los dıas correspondientes y las aceleraciones en las listas definidas.
-
-
-
-"""
-
-tiempo = 400
-r_previo = r_Tierra_ant #= [x_lista[0], y_lista[0]] posicion de la tierra antes del instante cero
-r_inicial = r_Tierra_0 #[x_lista[1], y_lista[1]] posicion de la tierra en t=0
-a_inicial = [ lista_aceleracion_x[1] , lista_aceleracion_y[1]]
-#ARMO UNA FUNCION PORQUE PUEDE RESULTAR UTIL PARA CALCULAR OTRAS ORBITAS
-def calcular_orbita (pos_tierra_dia , pos_tierra_ant , pos_sol , A_actual , dias ):
-  tiempo_total = dias #en dias
-  #Inicializo con las primeras 2 posiciones iniciales
-  r_anterior = pos_tierra_ant #= [x_lista[0], y_lista[0]] posicion de la tierra antes del instante cero
-  r_actual = pos_tierra_dia  #[x_lista[1], y_lista[1]] posicion de la tierra en t=0
-  # Tomo los datos de 'actual' como las posiciones y aceleraciones del dia 1
-  dias_lista = [1]
-  Rx_lista = [r_actual[0]]
-  Ry_lista = [r_actual[1]]
-  Ax_lista = [A_actual[0]]
-  Ay_lista = [A_actual[1]]
-  for i in range (2 , tiempo_total+1) :
-    # Guardo el dia
-    dias_lista.append(i)
-    # Calculo la aceleracion
-    A_xy = calcula_aceleracion(r_Sol, r_actual)
-    # Calculo la posicion futura
-    r_posterior = realizar_verlet(r_anterior, r_actual, A_xy, delta_t)
-    # Guardo posiciones nuevas del dia
-    Rx_lista.append(r_posterior[0])
-    Ry_lista.append(r_posterior[1])
-    # Guardo nuevas aceleraciones
-    A_xy = calcula_aceleracion(r_Sol, r_posterior)
-    Ax_lista.append(A_xy[0])
-    Ay_lista.append(A_xy[1])
-    # Actualizo listas con las posiciones
-    r_anterior = r_actual
-    r_actual = r_posterior
-  return Rx_lista , Ry_lista , Ax_lista , Ay_lista , dias_lista
-
-Posiciones_x , Posiciones_y , Aceleraciones_x , Aceleraciones_y , Dias = calcular_orbita( r_inicial , r_previo , r_Sol , a_inicial , tiempo)
-
-print('Longitud Posiciones_x ',len(Posiciones_x),Posiciones_x)
-print('Longitud Posiciones_y ',len(Posiciones_y),Posiciones_y)
-print('Longitud Ax_lista ',len(Aceleraciones_x),Aceleraciones_x)
-print('Longitud Ay_lista ',len(Aceleraciones_y),Aceleraciones_y)
-print('Longitud lista Dias ',len(Dias),Dias)
-
-"""## EJERCICIO 5
-Importar la biblioteca necesaria y graficar la trayectoria en el plano (x, y).
-
-
-
-"""
-
 import matplotlib.pyplot as plt
-plt.style.use('dark_background') #configuro todos los graficos en modo oscuro
-if len(Posiciones_x)==len(Posiciones_y):  #chequeo que las listas sean del mismo tamaño para graficar
-  plt.plot ( Posiciones_x , Posiciones_y , color='grey')
-  plt.title('Trayectoria de la Tierra')
-  plt.xlabel('Posicion en x')
-  plt.ylabel('Posicion en y')
-  plt.show()
-
-"""## EJERCICIO 6
-Grafique ahora la aceleracion x o y en funcion de los dıas.
-Vamos a hacer un video animado del movimiento. Para eso necesitamos ir guardando una sucesion de fotos de cada dıa.
-"""
-
-if len(Dias)==len(Aceleraciones_x):  #chequeo que las listas sean del mismo tamaño para graficar
-  plt.plot ( Dias , Aceleraciones_x , color='cyan')
-  plt.title('Desplazamiento en x de la Tierra')
-  plt.xlabel('Dias')
-  plt.ylabel('Posicion en x')
-  plt.show()
-else: print('Error: Hay una discrepancia entre los datos de aceleracion en el eje x y el tiempo de medicion')
-
-if len(Dias)==len(Aceleraciones_y): 
-  plt.plot ( Dias , Aceleraciones_y , color='cyan')
-  plt.title('Desplazamiento en y de la Tierra')
-  plt.xlabel('Dias')
-  plt.ylabel('Posicion en y')
-  plt.show()
-else: print('Error: Hay una discrepancia entre los datos de aceleracion en el eje y y el tiempo de medicion')
-
-"""## EJERCICIO 7
-Arme una funcion hacer foto(lista x,lista y,pos sol,dia) que reciba las posiciones de la Tierra y el Sol y un dıa, y haga un grafico que muestre la trayectoria en el plano (x, y) de la Tierra, el Sol como un punto amarillo y la Tierra como un punto azul en el dıa elegido.
-
-"""
-
-def hacer_foto_orbita ( lista_x , lista_y , pos_sol , dia ) :
-  # borra lo que hubiera antes en la figura
-  plt.clf ()
-  # grafico trayectoria (x,y)
-  plt.plot ( lista_x , lista_y , 'grey')
-  plt.title('Trayectoria de la Tierra alrededor del Sol. Dia:'+str(dia))
-  # grafico al Sol
-  #’yo ’ es para hacer un punto amarillo ( ’y’ de yellow y ’o’ de punto )
-  #ms elige el tamanio del punto
-  plt.plot ( pos_sol[0], pos_sol[1],'yo', ms =20)
-  # grafico a la Tierra mas chiquita
-  #’b’ es por blue
-  plt.plot( lista_x[dia+1] , lista_y[dia+1] ,'bo', ms =10)
-  plt.show
-  return
-
-hacer_foto_orbita( Posiciones_x , Posiciones_y , r_Sol , 60)
-
-"""## EJERCICIO 8
-Copie la funcion `hacer_video(lista x,lista y,pos sol,dia, nombre video)` que reciba las posiciones de la Tierra y el Sol, y guarde un video con la animacion del movimiento, con `nombre_video` como nombre del archivo. Necesitara tener instalada la biblioteca imageio e importarla
-
-```
 import imageio
 
-def hacer_video ( lista_x , lista_y , pos_sol , nombre_video ) :
-  lista_fotos =[] # aca voy a ir guardando las fotos
-  for i in range (len ( lista_x ) ) :
-    if i %2==0: # esto es para guardar 1 de cada 2 fotos y tarde menos
-      hacer_foto ( lista_x , lista_y , pos_sol , i )
-      plt . savefig ( nombre_video +’.png ’)
-      lista_fotos . append ( imageio . imread ( nombre_video +’. png ’) )
-    print (str( i ) +’ de ’+str(len( lista_x ) ) +’ fotos guardadas ’)
-  imageio . mimsave ( nombre_video +’.mp4 ’, lista_fotos ) # funcion que crea el video
-  print (’Video Guardado ’)
-```
+""" Use of scipy library (https://docs.scipy.org/doc/scipy/reference/constants.html)
+Is restricted due to possible overlapping of variables. """
+
+# Declaration of variables
+G_Earth = 6.693 * 10 ** -11  # Gravitational constants. Units: N*m^2/kg^2
+M_Earth = 1.98 * 10 ** 30  # Earth's mass, units=kg
+
+earth_day_sec = 60 * 60 * 24  # Duration of a day on Earth measured in seconds
+total_earth_days = 400  # Simulated Earth's Days
+
+# Earth's first position vectors (measured in meters) must contain data of two days.
+r_x_earth = [-147095000000.0, -147095000000.0]
+r_y_earth = [0.0, 2617920000.0]
+# Both the x and y vectors are list with the following format: [Day0, Day1]
+# This format remains for the generated vectors
+
+# Suggestion to reduce confusion: reformat so it's a 2x2 matrix
+
+# Sun's position: we consider it a fixed constant
+r_sun = [0, 0]
+
+earth_r_day0 = [r_x_earth[0], r_y_earth[0]]  # Position of Earth on Day 0 in R2 plane
+earth_r_day1 = [r_x_earth[1], r_y_earth[1]]  # Position of Earth on Day 1 in R2 plane
 
 
+# Some functions
+def calc_vector_module(sun_position, planet_position):
+    # Format of provided sun_position = [x_sol, y_sol]
+    # Format of provided pos_planet [x_planet,y_planet]
+    # Check if provided coordinates are in the same vector space or else notify a discrepancy
+    if len(sun_position) == len(planet_position) == 2:
+        distance = np.sqrt((sun_position[0] - planet_position[0]) ** 2 + (sun_position[1] - planet_position[1]) ** 2)
+        return distance
+        # returns module of position vector as float type number
+    else:
+        return print('The coordinates are in different vector spaces')
+
+
+def calculate_acceleration(sun_position, planet_position):
+    # Input must be two list of two elements each
+    # Each list contains the coordinates of the Sun and the planet in two dimensions
+    # Typically the Sun marks the center of the system of coordinates [0, 0]
+
+    # Calculate coordinates and vector module of planet
+    x = sun_position[0] - planet_position[0]
+    y = sun_position[1] - planet_position[1]
+    d = calc_vector_module(sun_position, planet_position)  # save result as list
+
+    # Calculate gravitational acceleration
+    acceleration_x = ((G_Earth * M_Earth) / d ** 2) * (x / d)
+    acceleration_y = ((G_Earth * M_Earth) / d ** 2) * (y / d)
+    acceleration = [acceleration_x, acceleration_y]
+    return acceleration
+    # Returns a list of two elements with the x and y coordinates of acceleration vector
+
+
+# Test function
+print('Test calculate_acceleration Day0 ', calculate_acceleration(r_sun, earth_r_day0))
+print('Test calculate_acceleration Day1 ', calculate_acceleration(r_sun, earth_r_day1))
+
+""" Exercise 2
+Define variables and functions as necessary in order to calculate the first two acceleration vectors
+This will allow the use of Verlet's algorithm to generate more vectors"""
+
+# Lists that will contain the x and y coordinates of calculated accelerations
+earth_x_accelerations = []
+earth_y_accelerations = []
+
+day_acc = calculate_acceleration(r_sun, earth_r_day0)
+earth_x_accelerations.append(day_acc[0])
+earth_y_accelerations.append(day_acc[1])
+
+day_acc = calculate_acceleration(r_sun, earth_r_day1)
+earth_x_accelerations.append(day_acc[0])
+earth_y_accelerations.append(day_acc[1])
+
+print('Accelerations on x (m/s^2)', earth_x_accelerations)
+print('Accelerations on y (m/s^2)', earth_y_accelerations)
+print('Measured day: [0,1]')
+
+""" Exercise 3
+Define a function that uses Verlet's algorithm.
+It should receive two subsequent positions as a list type of 2D each as well as the acceleration for those positions.
+Then it must return the next position vector for the following Earth's day
 """
 
-import imageio
- 
-def hacer_video_orbita ( lista_x , lista_y , pos_sol , nombre_video ) :
-  lista_fotos =[] # aca voy a ir guardando las fotos
-  for i in range (len ( lista_x ) ) :
-    if i %2==0: # esto es para guardar 1 de cada 2 fotos y tarde menos
-      hacer_foto_orbita ( lista_x , lista_y , pos_sol , i )
-      plt.savefig ( nombre_video +'.png' )
-      lista_fotos.append ( imageio.imread ( nombre_video +'.png') )
-    #print (str(i) + 'de' +str(len( lista_x ) ) + 'fotos guardadas') #test, quitar # al inicio para verificar que se guardan las fotos
-  imageio.mimsave ( nombre_video +'.mp4', lista_fotos ) # funcion que crea el video
-  print ('Video Guardado')
 
-hacer_video_orbita ( Posiciones_x , Posiciones_y , r_Sol , 'Movimiento_traslacion' )
+def int_verlet_calc(pos_anterior, pos_actual, acceleration_actual, dt):
+    # New position in x
+    pos_x = 2 * pos_actual[0] - pos_anterior[0] + acceleration_actual[0] * dt ** 2
+    # New position in y
+    pos_y = 2 * pos_actual[1] - pos_anterior[1] + acceleration_actual[1] * dt ** 2
+    pos_posterior = [pos_x, pos_y]
+    return pos_posterior  # returns list with new planet positions
 
-"""## EJERCICIO 9
-¿Como cambia la forma de la trayectoria si la Tierra de pronto fuera al doble de velocidad?
-(Ayuda: para esto deber ́ıamos multiplicar `lista_y[1]` por 2, ¿Por que?)
 
-Al principio del movimiento pareciera que toma una orbita circular, pero luego sigue una trayectoria recta
+# test int_verlet_calc
+test_acc = calculate_acceleration(r_sun, earth_r_day1)
+int_verlet_calc(earth_r_day0, earth_r_day1, test_acc, earth_day_sec)
 
-Multiplicamos por 2 el algoritmo de Verlet duplica la velocidad al hacer el producto de la posicion por un escalar
+""" Exercise 4
+Make a cycle that uses int_verlet_calc to calculate and save the position, acceleration and Earth day in lists"""
+
+initial_acc = [earth_x_accelerations[1], earth_y_accelerations[1]]
+
+
+def calculate_orbit(planet_position_dia, planet_position_ant, actual_acc, days):
+    # Assign variables in local scope
+    r_anterior = planet_position_ant  # = [r_x_earth[0], r_y_earth[0]] # position on day 0
+    r_actual = planet_position_dia  # [r_x_earth[1], r_y_earth[1]] # position on day 1
+    # Assign 'actual' positions and accelerations as those of day 1
+    dias_list = [1]
+    rx_list = [r_actual[0]]
+    ry_list = [r_actual[1]]
+    acc_x_list = [actual_acc[0]]
+    acc_y_list = [actual_acc[1]]
+    for i in range(2, days + 1):
+        # Save day number
+        dias_list.append(i)
+        # Calculate acceleration of current day
+        acc_xy_list = calculate_acceleration(r_sun, r_actual)
+        # Calculate next position
+        r_posterior = int_verlet_calc(r_anterior, r_actual, acc_xy_list, earth_day_sec)
+        # Save new positions
+        rx_list.append(r_posterior[0])
+        ry_list.append(r_posterior[1])
+        # Save new accelerations
+        acc_xy_list = calculate_acceleration(r_sun, r_posterior)
+        acc_x_list.append(acc_xy_list[0])
+        acc_y_list.append(acc_xy_list[1])
+        # Refresh last and current positions for next cycle
+        r_anterior = r_actual
+        r_actual = r_posterior
+    return rx_list, ry_list, acc_x_list, acc_y_list, dias_list
+
+
+x_positions, y_positions, x_accelerations, y_accelerations, Dias = calculate_orbit(earth_r_day1,
+                                                                                   earth_r_day0,
+                                                                                   initial_acc,
+                                                                                   total_earth_days)
+
+print('List of x coordinates, size =', len(x_positions), x_positions)
+print('List of y coordinates, size=', len(y_positions), y_positions)
+print('List of acceleration in x, size=', len(x_accelerations), x_accelerations)
+print('List of acceleration in y, size=', len(y_accelerations), y_accelerations)
+print('List of days, size=', len(Dias), Dias)
+
+""" Exercise 5
+Graph: trajectory in (x,y) plane """
+
+plt.style.use('dark_background')
+if len(x_positions) == len(y_positions):  # check that lists with coordinates have the same size
+    plt.plot(x_positions, y_positions, color='grey')
+    plt.title("Earth's trajectory")
+    plt.xlabel('x coordinates')
+    plt.ylabel('y coordinates')
+    plt.show()
+
+""" Exercise 6
+Graph: acceleration as a function of time (measured in days)
+Later generate an animated video of the translational movement. We wil need to handle the images that compose it. """
+
+if len(Dias) == len(x_accelerations):  # check that lists are equally sized
+    plt.plot(Dias, x_accelerations, color='cyan')
+    plt.title("Earth's acceleration on x axis")
+    plt.xlabel('Days')
+    plt.ylabel('x coordinates (meters)')
+    plt.show()
+else:
+    print('Error: There is a discrepancy between the number days and the number of x coordinates')
+
+if len(Dias) == len(y_accelerations):
+    plt.plot(Dias, y_accelerations, color='cyan')
+    plt.title("Earth's acceleration movement on y axis")
+    plt.xlabel('Days')
+    plt.ylabel('y coordinates (meters)')
+    plt.show()
+else:
+    print('Error: There is a discrepancy between the number days and the number of y coordinates')
+
+""" Exercise 7
+Elaborate a function that receives positions and a day and makes a graphic of the planet's trajectory
+and pictures the Sun a a reference and the planet's positions as a small circle."""
+
+
+def make_orbit_picture(list_x, list_y, sun_position, dia):
+    # clear the figure as precaution
+    plt.clf()
+    # generate a trajectory graph (x,y)
+    plt.plot(list_x, list_y, 'grey')
+    plt.title("Earth's orbit around the Sun. Day: " + str(dia))
+    # generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
+    plt.plot(sun_position[0], sun_position[1], 'yo', ms=20)
+    # generate Earth's positions as a smaller blue dot
+    plt.plot(list_x[dia + 1], list_y[dia + 1], 'bo', ms=10)
+    # plt.show()  # test result if () removed
+    return
+
+
+# Test make_orbit_picture function
+make_orbit_picture(x_positions, y_positions, r_sun, 60)
+
+""" Exercise 8
+Make a function that generates and saves an animation with imageio, following the library's webpage suggestions
 """
 
-#Para esto me resultaba util el punto 4 en forma de función. En este codigo lista_y[1] = r_inicial[1] = r_Tierra_0[1]
-r_inicial2 = [ x_lista[1] , y_lista[1]*2 ] #[x_lista[1], y_lista[1]] posicion de la tierra en t=0
-#Tengo que volver a calcular la aceleracion del primer dia
-a_inicial2 = calcula_aceleracion ( r_Sol , r_inicial )  # aceleracion en x , aceleracion en y en el primer dia
 
-Posiciones2_x , Posiciones2_y , Aceleraciones2_x , Aceleraciones2_y , Dias2 = calcular_orbita( r_inicial2 , r_previo , r_Sol , a_inicial2 , tiempo)
+def make_orbit_video(list_x, list_y, sun_position, name_of_video):
+    print('Preparing video, please wait ...')
+    photos_list = []  # list with saves images
+    for i in range(len(list_x)):
+        if i % 2 == 0:  # Save one out of two images
+            make_orbit_picture(list_x, list_y, sun_position, i)
+            plt.savefig(name_of_video + '.png')
+            photos_list.append(imageio.imread(name_of_video + '.png'))
+        # Verification test to corroborate saving
+        # print (str(i) + ' out of ' +str(len( list_x ) ) + ' saves images')
+    imageio.mimsave(name_of_video + '.mp4', photos_list)  # create video
+    print('Video saved as ' + name_of_video + '.mp4')
 
-print('Longitud Posiciones2_x ',len(Posiciones2_x),Posiciones2_x)
-print('Longitud Posiciones2_y ',len(Posiciones2_y),Posiciones2_y)
-print('Longitud Aceleraciones2_x ',len(Aceleraciones2_x),Aceleraciones2_x)
-print('Longitud Aceleraciones2_y ',len(Aceleraciones2_y),Aceleraciones2_y)
-print('Longitud lista Dias ',len(Dias),Dias2)
 
-if len(Posiciones2_x)==len(Posiciones2_y):  #chequeo que las listas sean del mismo tamaño para graficar
-  plt.plot ( Posiciones2_x , Posiciones2_y , color='grey')
-  plt.title('Trayectoria de la Tierra')
-  plt.xlabel('Posicion en x')
-  plt.ylabel('Posicion en y')
-  plt.show()
+make_orbit_video(x_positions, y_positions, r_sun, 'Translational_movement')
 
-hacer_foto_orbita( Posiciones2_x , Posiciones2_y , r_Sol , 60)
+""" Exercise 9
+How would Earth's trajectory change if it moved twice as fast?
+Hint: to reflect this modification, me must double the value of list_y[1] and calculate it all over again
 
-"""## EJERCICIO 10
-¿Y si la velocidad fuera la mitad? ¿Es suficientemente chiquito el dt?
+Answer: initially we would have a circular orbit but then it follows a somewhat linear trajectory """
 
-Ahora resulta que en cierto rango de tiempo el sol se acerca o se aleja mucho al sol
+# Remember that previously in the code list_y[1] = earth_r_day1[1]
+initial_r2 = [r_x_earth[1], r_y_earth[1] * 2]
+
+# Calculate again the acceleration of Day 1:
+initial_acc2 = calculate_acceleration(r_sun, earth_r_day1)
+
+x_positions2, y_positions2, x_accelerations2, y_accelerations2, Dias2 = calculate_orbit(initial_r2,
+                                                                                        earth_r_day0,
+                                                                                        initial_acc2,
+                                                                                        total_earth_days)
+
+print('Length of  x_positions2 ', len(x_positions2), x_positions2)
+print('Length of  y_positions2 ', len(y_positions2), y_positions2)
+print('Length of  x_accelerations2 ', len(x_accelerations2), x_accelerations2)
+print('Length of  y_accelerations2 ', len(y_accelerations2), y_accelerations2)
+print('Length of  list Dias ', len(Dias), Dias2)
+
+if len(x_positions2) == len(y_positions2):  # check that lists have the same size
+    plt.plot(x_positions2, y_positions2, color='grey')
+    plt.title("Earth's trajectory if it moved twice as fast")
+    plt.xlabel('x coordinates')
+    plt.ylabel('y coordinates')
+    plt.show()
+
+make_orbit_picture(x_positions2, y_positions2, r_sun, 60)
+
+""" Exercise 10
+What if instead Earth went half as fast? Should a day be shorter?
+Answer: now the Earth moves too close or too far from the Sun
 """
 
-r_inicial3 = [ x_lista[1] , y_lista[1]*0.5 ] #[x_lista[1], y_lista[1]] posicion de la tierra en t=0
-a_inicial3 = calcula_aceleracion ( r_Sol , r_inicial )  # aceleracion en x , aceleracion en y en el primer dia
-Posiciones3_x , Posiciones3_y , Aceleraciones3_x , Aceleraciones3_y , Dias3 = calcular_orbita( r_inicial3 , r_previo , r_Sol , a_inicial3 , tiempo)
+initial_r3 = [r_x_earth[1], r_y_earth[1] * 0.5]
+# Calculate again the acceleration of Day 1:
+initial_acc3 = calculate_acceleration(r_sun, earth_r_day1)  # acceleration en x , acceleration en y en el primer dia
 
-if len(Posiciones3_x)==len(Posiciones3_y):  #chequeo que las listas sean del mismo tamaño para graficar
-  plt.plot ( Posiciones3_x , Posiciones3_y , color='grey')
-  plt.title('Trayectoria de la Tierra')
-  plt.xlabel('Posicion en x')
-  plt.ylabel('Posicion en y')
-  plt.show()
+x_positions3, y_positions3, x_accelerations3, y_accelerations3, Dias3 = calculate_orbit(initial_r3,
+                                                                                        earth_r_day0,
+                                                                                        initial_acc3,
+                                                                                        total_earth_days)
 
-hacer_foto_orbita( Posiciones3_x , Posiciones3_y , r_Sol , 60)
+if len(x_positions3) == len(y_positions3):  # check that lists have the same size
+    plt.plot(x_positions3, y_positions3, color='grey')
+    plt.title("Earth's trajectory if it moved half as fast")
+    plt.xlabel('x coordinates')
+    plt.ylabel('y coordinates')
+    plt.show()
 
-"""## EJERCICIO 11
-Modifique las funciones `hacer_foto` y `hacer_video` para que reciban tambien las listas de aceleracion y la agreguen al grafico. Para esto puede utilizar la funcion arrow(x1,y1,x2,y2) de matplotlib, la cual grafica una flecha que nace (x1,y1) y apunta en la direccion (x2,y2).
+make_orbit_picture(x_positions3, y_positions3, r_sun, 60)
 
-Modifique la siguiente lınea para que la flecha nazca en la posicion de la Tierra del dıa correspondiente, y añadala a la funcion `hacer_foto`.
-
-
-```
-plt . arrow ( ___COMPLETAR___ , ___COMPLETAR___ , aceleracion_x [ dia ]*10**12.5 , aceleracion_y [ dia ]*10**12.5 , width =10**9.5 , Color =’g’)
-```
-
-
+""" Exercise 11
+Modify the functions 'make_orbit_picture' and 'make_orbit_video' so they can receive acceleration's lists
+Add them to the images.
+The matplotlib function (x1,y1,x2,y2) may be useful, where 1 is the origin and 2 the destination of the vector.
 """
 
-def hacer_foto_movimiento ( lista_x , lista_y , pos_sol , aceleracion_x , aceleracion_y , dia ) :
-  # borra lo que hubiera antes en la figura
-  plt.clf ()
-  # grafico trayectoria (x,y)
-  plt.plot ( lista_x , lista_y , 'grey')
-  plt.title('Trayectoria de la Tierra alrededor del Sol. Dia:'+str(dia))
-  # grafico al Sol
-  #’yo ’ es para hacer un punto amarillo ( ’y’ de yellow y ’o’ de punto )
-  #ms elige el tamanio del punto
-  plt.plot ( pos_sol[0], pos_sol[1],'yo', ms =20)
-  # grafico a la Tierra mas chiquita
-  #’b’ es por blue
-  plt.plot( lista_x[dia+1] , lista_y[dia+1] ,'bo', ms =10)
-  # grafico la flecha
-  plt.arrow( lista_x[dia], lista_y[dia], aceleracion_x[dia]*10**12.5, aceleracion_y[dia]*10**12.5, width = 10**9.5 , color ='green')
-  #plt.show
-  return
 
-hacer_foto_movimiento( Posiciones3_x , Posiciones3_y , r_Sol , Aceleraciones3_x , Aceleraciones3_y , 300 )
+def trajectory_plus_acc_picture(list_x, list_y, sun_position, acceleration_x, acceleration_y, dia):
+    # clear the plotted figure
+    plt.clf()
+    # display trajectory
+    plt.plot(list_x, list_y, 'grey')
+    plt.title("Earth's trajectory around the Sun. Day: " + str(dia))
+    # display Sun's position
+    plt.plot(sun_position[0], sun_position[1], 'yo', ms=20)
+    # display Earth's position
+    plt.plot(list_x[dia + 1], list_y[dia + 1], 'bo', ms=10)
+    # display acceleration vector
+    plt.arrow(list_x[dia], list_y[dia], acceleration_x[dia] * 10 ** 12.5, acceleration_y[dia] * 10 ** 12.5,
+              width=10 ** 9.5, color='green')
+    # plt.show
+    return
 
-def hacer_video_movimiento ( lista_x , lista_y , pos_sol , aceleracion_x , aceleracion_y , nombre_video ) :
-  lista_fotos =[] # aca voy a ir guardando las fotos
-  for i in range (len ( lista_x ) ) :
-    if i %2==0: # esto es para guardar 1 de cada 2 fotos y tarde menos
-      hacer_foto_movimiento ( lista_x , lista_y , pos_sol , aceleracion_x , aceleracion_y, i )
-      plt.savefig ( nombre_video +'.png' )
-      lista_fotos.append ( imageio.imread ( nombre_video +'.png') )
-    #print (str(i) + 'de' +str(len( lista_x ) ) + 'fotos guardadas') #test, quitar # al inicio para verificar que se guardan las fotos
-  imageio.mimsave ( nombre_video +'.mp4', lista_fotos ) # funcion que crea elvideo
-  print ('Video Guardado')
 
-hacer_video_movimiento( Posiciones3_x , Posiciones3_y , r_Sol , Aceleraciones3_x , Aceleraciones3_y , 'Movimiento_orbita_+_aceleracion' )
+trajectory_plus_acc_picture(x_positions3, y_positions3, r_sun, x_accelerations3, y_accelerations3, 300)
 
-"""## EJERCICIO 12
- (opcional) ¿Como calcular ́ıa la velocidad punto a punto? Grafıquela en funcion de los dıas.
 
-13. (opcional) Explorar en la pagina de la NASA para obtener las posiciones y masas de distintos planetas y agregarlos a la animacion. (note que estan en unidades astronomicas y debe pasarlos a
-metros)
+def trajectory_plus_acc_video(list_x, list_y, sun_position, acceleration_x, acceleration_y, name_of_video):
+    print('Preparing video, please wait ...')
+    photos_list = []  # save images in a list
+    for i in range(len(list_x)):
+        if i % 2 == 0:  # save one out of two pictures
+            trajectory_plus_acc_picture(list_x, list_y, sun_position, acceleration_x, acceleration_y, i)
+            plt.savefig(name_of_video + '.png')
+            photos_list.append(imageio.imread(name_of_video + '.png'))
+        # print (str(i) + ' out of ' +str(len( list_x ) ) + 'saves pictures') # test saving
+    imageio.mimsave(name_of_video + '.mp4', photos_list)  # create video
+    print('Video saved as ' + name_of_video + '.mp4')
+
+
+trajectory_plus_acc_video(x_positions3, y_positions3, r_sun, x_accelerations3, y_accelerations3,
+                          'Orbit_+_acceleration')
+
+""" Exercise 12 (optional)
+How would you calculate velocity of each day? Display as a function of time
+"""
+
+""" Exercise 13 (optional)
+Explore NASA's web page to obtain positions and masses of more planets and add them to the animation
+Note that units are astronomical and must be converted to meters
 https://ssd.jpl.nasa.gov/horizons.cgi#results
+"""
 
-14. (opcional) Busc ́a en la p ́agina de la NASA la posici ́on de la Tierra el dıa de tu nacimiento y fijate si podes determinar que dıa ocurrio el primer perihelio o afelio de tu vida (las distancia ́ḿınima y maxima de la Tierra al Sol). Te puede ser  ́util el siguiente link: https://www.timeanddate.com/
-date/dateadd.html
+""" Exercise 14
+Search on NASA's web page to obtain the position of Earth on your birthdate
+Try to determine when was the first perihelion and aphelion of your life (min and max distance to the Sun)
+See also https://www.timeanddate.com/date/dateadd.html
 """

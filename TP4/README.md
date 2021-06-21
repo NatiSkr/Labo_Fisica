@@ -1,16 +1,12 @@
-Corresponde a la Actividad N°4 'Órbitas' de la cursada virtual de Mecanica y Termodinamica, DF, FCEyN.
+*Activity #4 'Órbitas'* from the virtual course of "Mecanica y Termodinamica", Departamento de Fisica, Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires.
 
-Formato original: Jupyter notebook .ipynb
+Guide available in pdf format (Spanish only). The practice's objective was to simulate a planetary orbit in two dimensions both as a picture and as an animation.
 
-Generado automaticamente por Colaboratory
+Original format: Jupyter notebook .ipynb
 
-
-Para utilizar el algoritmo de Verlet, necesitamos dos posiciones iniciales, es decir un
-par `(x[i-1], x[i])` y otro `(y[i-1],y[i])`.
-
-Tomamos estas de un momento en particular de la orbita terrestre, sacadas de la pagina de la NASA https://ssd.jpl.nasa.gov/horizons.cgi
+Earth's coordinates taken from NASA'S webpage at https://ssd.jpl.nasa.gov/horizons.cgi
 
 
-ERRORES CONOCIDOS
-- generación de listas de planeta
-- escala de video incorrecta --> ajustar tamaño de graficos a ancho y alto fijo. El cambio de magnitud del vector aceleracion reescala todo
+*Known errors*
+
+- Video scale becomes dinamic when adding an acceleration vector
