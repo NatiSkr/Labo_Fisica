@@ -1,6 +1,10 @@
-Repo nuevo, se ira actualizando! cheers
+New repo, currently updating! cheers
 
-Paquetes necesarios para ejecutar los códigos:
+It contains assignments for the virtual course of "Mecanica y Termodinamica" at Universidad de Buenos Aires.
+It's main aim was to serve as an introduction to programming, Python to be more precise.
+We used Jupyter Notebook or Google Colaboratory, the code here is adapted so you wouldn't need either.
+
+The necessary packages to execute the code are:
 - numpy
 - scipy
 - matplotlib
@@ -8,8 +12,12 @@ Paquetes necesarios para ejecutar los códigos:
 - iamge-ffmpeg
 - panda
 
-Se pueden instalar con pip, que a su vez podes chequear si lo tenes instalado en la consola con el comando:
-'py -m pip --version' en Windows
-'$ python -m pip --version' en Linux/macOS
+Use of a virtual enviroment is heavily advised.
 
-Para ver la guia de instalación visitar: https://pypi.org/project/pip/
+You can install them with pip, check if it's installed with:
+
+'py -m pip --version' on Windows
+
+'$ python -m pip --version' on Linux/macOS
+
+To check the installation guide for pip check: https://pypi.org/project/pip/
