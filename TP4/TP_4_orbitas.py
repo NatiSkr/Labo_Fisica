@@ -199,34 +199,38 @@ Elaborate a function that receives positions and a day and makes a graphic of th
 and pictures the Sun a a reference and the planet's positions as a small circle."""
 
 
-def make_orbit_picture(list_x, list_y, sun_position, dia):
+def make_orbit_picture(list_x, list_y, dia):
     # clear the figure as precaution
     plt.clf()
+
     # generate a trajectory graph (x,y)
     plt.plot(list_x, list_y, 'grey')
     plt.title("Earth's orbit around the Sun. Day: " + str(dia))
+
     # generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
-    plt.plot(sun_position[0], sun_position[1], 'yo', ms=20)
+    plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
+
     # generate Earth's positions as a smaller blue dot
     plt.plot(list_x[dia + 1], list_y[dia + 1], 'bo', ms=10)
+
     # plt.show()  # test result if () removed
     return
 
 
 # Test make_orbit_picture function
-make_orbit_picture(x_positions, y_positions, r_sun, 60)
+make_orbit_picture(x_positions, y_positions, 60)
 
 """ Exercise 8
 Make a function that generates and saves an animation with imageio, following the library's webpage suggestions
 """
 
 
-def make_orbit_video(list_x, list_y, sun_position, name_of_video):
+def make_orbit_video(list_x, list_y, name_of_video):
     print('Preparing video, please wait ...')
     photos_list = []  # list with saves images
     for i in range(len(list_x)):
         if i % 2 == 0:  # Save one out of two images
-            make_orbit_picture(list_x, list_y, sun_position, i)
+            make_orbit_picture(list_x, list_y, i)
             plt.savefig(name_of_video + '.png')
             photos_list.append(imageio.imread(name_of_video + '.png'))
         # Verification test to corroborate saving
@@ -235,7 +239,7 @@ def make_orbit_video(list_x, list_y, sun_position, name_of_video):
     print('Video saved as ' + name_of_video + '.mp4')
 
 
-make_orbit_video(x_positions, y_positions, r_sun, 'Translational_movement')
+make_orbit_video(x_positions, y_positions, 'Translational_movement')
 
 """ Exercise 9
 How would Earth's trajectory change if it moved twice as fast?
@@ -267,7 +271,7 @@ if len(x_positions2) == len(y_positions2):  # check that lists have the same siz
     plt.ylabel('y coordinates')
     plt.show()
 
-make_orbit_picture(x_positions2, y_positions2, r_sun, 60)
+make_orbit_picture(x_positions2, y_positions2, 60)
 
 """ Exercise 10
 What if instead Earth went half as fast? Should a day be shorter?
@@ -290,7 +294,7 @@ if len(x_positions3) == len(y_positions3):  # check that lists have the same siz
     plt.ylabel('y coordinates')
     plt.show()
 
-make_orbit_picture(x_positions3, y_positions3, r_sun, 60)
+make_orbit_picture(x_positions3, y_positions3, 60)
 
 """ Exercise 11
 Modify the functions 'make_orbit_picture' and 'make_orbit_video' so they can receive acceleration's lists
@@ -299,16 +303,20 @@ The matplotlib function (x1,y1,x2,y2) may be useful, where 1 is the origin and 2
 """
 
 
-def trajectory_plus_acc_picture(list_x, list_y, sun_position, acceleration_x, acceleration_y, dia):
+def trajectory_plus_acc_picture(list_x, list_y, acceleration_x, acceleration_y, dia):
     # clear the plotted figure
     plt.clf()
+
     # display trajectory
     plt.plot(list_x, list_y, 'grey')
     plt.title("Earth's trajectory around the Sun. Day: " + str(dia))
+
     # display Sun's position
-    plt.plot(sun_position[0], sun_position[1], 'yo', ms=20)
+    plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
+
     # display Earth's position
     plt.plot(list_x[dia + 1], list_y[dia + 1], 'bo', ms=10)
+
     # display acceleration vector
     plt.arrow(list_x[dia], list_y[dia], acceleration_x[dia] * 10 ** 12.5, acceleration_y[dia] * 10 ** 12.5,
               width=10 ** 9.5, color='green')
@@ -316,15 +324,18 @@ def trajectory_plus_acc_picture(list_x, list_y, sun_position, acceleration_x, ac
     return
 
 
-trajectory_plus_acc_picture(x_positions3, y_positions3, r_sun, x_accelerations3, y_accelerations3, 300)
+trajectory_plus_acc_picture(x_positions3,
+                            y_positions3,
+                            x_accelerations3,
+                            y_accelerations3, 300)
 
 
-def trajectory_plus_acc_video(list_x, list_y, sun_position, acceleration_x, acceleration_y, name_of_video):
+def trajectory_plus_acc_video(list_x, list_y, acceleration_x, acceleration_y, name_of_video):
     print('Preparing video, please wait ...')
     photos_list = []  # save images in a list
     for i in range(len(list_x)):
         if i % 2 == 0:  # save one out of two pictures
-            trajectory_plus_acc_picture(list_x, list_y, sun_position, acceleration_x, acceleration_y, i)
+            trajectory_plus_acc_picture(list_x, list_y, acceleration_x, acceleration_y, i)
             plt.savefig(name_of_video + '.png')
             photos_list.append(imageio.imread(name_of_video + '.png'))
         # print (str(i) + ' out of ' +str(len( list_x ) ) + 'saves pictures') # test saving
@@ -332,7 +343,10 @@ def trajectory_plus_acc_video(list_x, list_y, sun_position, acceleration_x, acce
     print('Video saved as ' + name_of_video + '.mp4')
 
 
-trajectory_plus_acc_video(x_positions3, y_positions3, r_sun, x_accelerations3, y_accelerations3,
+trajectory_plus_acc_video(x_positions3,
+                          y_positions3,
+                          x_accelerations3,
+                          y_accelerations3,
                           'Orbit_+_acceleration')
 
 """ Exercise 12 (optional)
