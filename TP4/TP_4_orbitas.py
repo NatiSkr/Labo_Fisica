@@ -153,13 +153,22 @@ print('List of days, size=', len(Dias), Dias)
 """ Exercise 5
 Graph: trajectory in (x,y) plane """
 
-plt.style.use('dark_background')
-if len(x_positions) == len(y_positions):  # check that lists with coordinates have the same size
-    plt.plot(x_positions, y_positions, color='grey')
-    plt.title("Earth's trajectory")
-    plt.xlabel('x coordinates')
-    plt.ylabel('y coordinates')
-    plt.show()
+
+def picture_planet_track(data_x_positions, data_y_positions, planet_name):
+    plt.style.use('dark_background')
+    # check that lists with coordinates have the same size
+    if len(data_x_positions) == len(data_y_positions):
+        plt.plot(data_x_positions, data_y_positions, color='grey')
+        # generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
+        plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
+        plt.title(planet_name+"'s trajectory")
+        plt.xlabel('x coordinates')
+        plt.ylabel('y coordinates')
+        plt.show()
+
+
+picture_planet_track(x_positions, y_positions, "Earth")
+
 
 """ Exercise 6
 Graph: acceleration as a function of time (measured in days)
