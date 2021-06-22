@@ -30,19 +30,14 @@ M_Earth = 1.98 * 10 ** 30  # Earth's mass, units=kg
 earth_day_sec = 60 * 60 * 24  # Duration of a day on Earth measured in seconds
 total_earth_days = 400  # Simulated Earth's Days
 
-# Earth's first position vectors (measured in meters) must contain data of two days.
-r_x_earth = [-147095000000.0, -147095000000.0]
-r_y_earth = [0.0, 2617920000.0]
-# Both the x and y vectors are list with the following format: [Day0, Day1]
-# This format remains for the generated vectors
-
-# Suggestion to reduce confusion: reformat so it's a 2x2 matrix
+"Earth's first position vectors (measured in meters) must contain (x,y) data of two days."
+# Position of Earth on Day 0 in R2 plane
+earth_r_day0 = [-147095000000.0, 0.0]
+# Position of Earth on Day 1 in R2 plane
+earth_r_day1 = [-147095000000.0, 2617920000.0]
 
 # Sun's position: we consider it a fixed constant
 r_sun = [0, 0]
-
-earth_r_day0 = [r_x_earth[0], r_y_earth[0]]  # Position of Earth on Day 0 in R2 plane
-earth_r_day1 = [r_x_earth[1], r_y_earth[1]]  # Position of Earth on Day 1 in R2 plane
 
 
 def calculate_acceleration(planet_position):
@@ -238,7 +233,7 @@ Hint: to reflect this modification, me must double the value of list_y[1] and ca
 Answer: initially we would have a circular orbit but then it follows a somewhat linear trajectory """
 
 # Remember that previously in the code list_y[1] = earth_r_day1[1]
-initial_r2 = [r_x_earth[1], r_y_earth[1] * 2]
+initial_r2 = [earth_r_day1[0], earth_r_day1[1] * 2]
 
 # Calculate again the acceleration of Day 1:
 initial_acc2 = calculate_acceleration(earth_r_day1)
@@ -268,7 +263,7 @@ What if instead Earth went half as fast? Should a day be shorter?
 Answer: now the Earth moves too close or too far from the Sun
 """
 
-initial_r3 = [r_x_earth[1], r_y_earth[1] * 0.5]
+initial_r3 = [earth_r_day1[0], earth_r_day1[1] * 0.5]
 # Calculate again the acceleration of Day 1:
 initial_acc3 = calculate_acceleration(earth_r_day1)  # acceleration en x , acceleration en y en el primer dia
 
