@@ -162,9 +162,11 @@ def picture_planet_track(data_x_positions, data_y_positions, planet_name):
         # generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
         plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
         plt.title(planet_name+"'s trajectory")
-        plt.xlabel('x coordinates')
-        plt.ylabel('y coordinates')
+        plt.xlabel('x coordinates (meters)')
+        plt.ylabel('y coordinates (meters)')
         plt.show()
+    else:
+        print('Error: There is a discrepancy between the number of days and the quantity of coordinates')
 
 
 picture_planet_track(x_positions, y_positions, "Earth")
@@ -174,23 +176,23 @@ picture_planet_track(x_positions, y_positions, "Earth")
 Graph: acceleration as a function of time (measured in days)
 Later generate an animated video of the translational movement. We wil need to handle the images that compose it. """
 
-if len(Dias) == len(x_accelerations):  # check that lists are equally sized
-    plt.plot(Dias, x_accelerations, color='cyan')
-    plt.title("Earth's acceleration on x axis")
-    plt.xlabel('Days')
-    plt.ylabel('x coordinates (meters)')
-    plt.show()
-else:
-    print('Error: There is a discrepancy between the number days and the number of x coordinates')
 
-if len(Dias) == len(y_accelerations):
-    plt.plot(Dias, y_accelerations, color='cyan')
-    plt.title("Earth's acceleration movement on y axis")
-    plt.xlabel('Days')
-    plt.ylabel('y coordinates (meters)')
-    plt.show()
-else:
-    print('Error: There is a discrepancy between the number days and the number of y coordinates')
+def picture_planet_ACCvsTIME(x_or_y, data_1d_acc, planet_name):
+    # check that lists are equally sized
+    if len(Dias) == len(data_1d_acc):
+        plt.plot(Dias, data_1d_acc, color='cyan')
+        plt.title(planet_name+"'s acceleration on "+x_or_y+" axis")
+        plt.xlabel('Days')
+        plt.ylabel('Acceleration (meters/seconds^2)')
+        plt.show()
+    else:
+        print('Error: There is a discrepancy between the number of days and the quantity of acceleration modules')
+
+
+picture_planet_ACCvsTIME("x", x_accelerations, "Earth")
+
+picture_planet_ACCvsTIME("y", y_accelerations, "Earth")
+
 
 """ Exercise 7
 Elaborate a function that receives positions and a day and makes a graphic of the planet's trajectory
