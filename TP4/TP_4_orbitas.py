@@ -45,40 +45,28 @@ earth_r_day0 = [r_x_earth[0], r_y_earth[0]]  # Position of Earth on Day 0 in R2 
 earth_r_day1 = [r_x_earth[1], r_y_earth[1]]  # Position of Earth on Day 1 in R2 plane
 
 
-# Some functions
-def calc_vector_module(sun_position, planet_position):
-    # Format of provided sun_position = [x_sol, y_sol]
-    # Format of provided pos_planet [x_planet,y_planet]
-    # Check if provided coordinates are in the same vector space or else notify a discrepancy
-    if len(sun_position) == len(planet_position) == 2:
-        distance = np.sqrt((sun_position[0] - planet_position[0]) ** 2 + (sun_position[1] - planet_position[1]) ** 2)
-        return distance
-        # returns module of position vector as float type number
-    else:
-        return print('The coordinates are in different vector spaces')
-
-
-def calculate_acceleration(sun_position, planet_position):
-    # Input must be two list of two elements each
-    # Each list contains the coordinates of the Sun and the planet in two dimensions
-    # Typically the Sun marks the center of the system of coordinates [0, 0]
+def calculate_acceleration(planet_position):
+    # Input must be a list with x and y coordinates of planet
 
     # Calculate coordinates and vector module of planet
-    x = sun_position[0] - planet_position[0]
-    y = sun_position[1] - planet_position[1]
-    d = calc_vector_module(sun_position, planet_position)  # save result as list
+    x = r_sun[0] - planet_position[0]
+    y = r_sun[1] - planet_position[1]
 
-    # Calculate gravitational acceleration
-    acceleration_x = ((G_Earth * M_Earth) / d ** 2) * (x / d)
-    acceleration_y = ((G_Earth * M_Earth) / d ** 2) * (y / d)
-    acceleration = [acceleration_x, acceleration_y]
-    return acceleration
-    # Returns a list of two elements with the x and y coordinates of acceleration vector
+    # Check if provided coordinates are in the same vector space or else notify a discrepancy
+    if len(r_sun) == len(planet_position) == 2:
+        d = np.sqrt(x**2 + y**2)
+        # Calculate gravitational acceleration
+        acceleration_x = ((G_Earth * M_Earth) / d ** 2) * (x / d)
+        acceleration_y = ((G_Earth * M_Earth) / d ** 2) * (y / d)
+        acceleration_2Dlist = [acceleration_x, acceleration_y]
+        return acceleration_2Dlist
+        # Returns a list of two elements with the x and y coordinates of acceleration vector
+    else: return print('The coordinates are in different vector spaces')
 
 
 # Test function
-print('Test calculate_acceleration Day0 ', calculate_acceleration(r_sun, earth_r_day0))
-print('Test calculate_acceleration Day1 ', calculate_acceleration(r_sun, earth_r_day1))
+print('Test calculate_acceleration Day0 ', calculate_acceleration(earth_r_day0))
+print('Test calculate_acceleration Day1 ', calculate_acceleration(earth_r_day1))
 
 """ Exercise 2
 Define variables and functions as necessary in order to calculate the first two acceleration vectors
@@ -88,11 +76,11 @@ This will allow the use of Verlet's algorithm to generate more vectors"""
 earth_x_accelerations = []
 earth_y_accelerations = []
 
-day_acc = calculate_acceleration(r_sun, earth_r_day0)
+day_acc = calculate_acceleration(earth_r_day0)
 earth_x_accelerations.append(day_acc[0])
 earth_y_accelerations.append(day_acc[1])
 
-day_acc = calculate_acceleration(r_sun, earth_r_day1)
+day_acc = calculate_acceleration(earth_r_day1)
 earth_x_accelerations.append(day_acc[0])
 earth_y_accelerations.append(day_acc[1])
 
@@ -117,7 +105,7 @@ def int_verlet_calc(pos_anterior, pos_actual, acceleration_actual, dt):
 
 
 # test int_verlet_calc
-test_acc = calculate_acceleration(r_sun, earth_r_day1)
+test_acc = calculate_acceleration(earth_r_day1)
 int_verlet_calc(earth_r_day0, earth_r_day1, test_acc, earth_day_sec)
 
 """ Exercise 4
@@ -140,14 +128,14 @@ def calculate_orbit(planet_position_dia, planet_position_ant, actual_acc, days):
         # Save day number
         dias_list.append(i)
         # Calculate acceleration of current day
-        acc_xy_list = calculate_acceleration(r_sun, r_actual)
+        acc_xy_list = calculate_acceleration(r_actual)
         # Calculate next position
         r_posterior = int_verlet_calc(r_anterior, r_actual, acc_xy_list, earth_day_sec)
         # Save new positions
         rx_list.append(r_posterior[0])
         ry_list.append(r_posterior[1])
         # Save new accelerations
-        acc_xy_list = calculate_acceleration(r_sun, r_posterior)
+        acc_xy_list = calculate_acceleration(r_posterior)
         acc_x_list.append(acc_xy_list[0])
         acc_y_list.append(acc_xy_list[1])
         # Refresh last and current positions for next cycle
@@ -253,7 +241,7 @@ Answer: initially we would have a circular orbit but then it follows a somewhat 
 initial_r2 = [r_x_earth[1], r_y_earth[1] * 2]
 
 # Calculate again the acceleration of Day 1:
-initial_acc2 = calculate_acceleration(r_sun, earth_r_day1)
+initial_acc2 = calculate_acceleration(earth_r_day1)
 
 x_positions2, y_positions2, x_accelerations2, y_accelerations2, Dias2 = calculate_orbit(initial_r2,
                                                                                         earth_r_day0,
@@ -282,7 +270,7 @@ Answer: now the Earth moves too close or too far from the Sun
 
 initial_r3 = [r_x_earth[1], r_y_earth[1] * 0.5]
 # Calculate again the acceleration of Day 1:
-initial_acc3 = calculate_acceleration(r_sun, earth_r_day1)  # acceleration en x , acceleration en y en el primer dia
+initial_acc3 = calculate_acceleration(earth_r_day1)  # acceleration en x , acceleration en y en el primer dia
 
 x_positions3, y_positions3, x_accelerations3, y_accelerations3, Dias3 = calculate_orbit(initial_r3,
                                                                                         earth_r_day0,
