@@ -25,9 +25,8 @@ plt.style.use('dark_background')
 Is restricted due to possible overlapping of variables. """
 
 # Declaration of variables
-G_Earth = 6.693 * 10 ** -11  # Gravitational constants. Units: N*m^2/kg^2
-M_Earth = 1.98 * 10 ** 30  # Earth's mass, units=kg
-
+universal_G = 6.672 * 10 ** -11  # Gravitational constants. Units: N*m^2/kg^2
+M_Sun = 1.98 * 10 ** 30  # Sun's mass, units=kg
 earth_day_sec = 60 * 60 * 24  # Duration of a day on Earth measured in seconds
 total_earth_days = 730  # Simulated Earth's Days
 
@@ -47,13 +46,12 @@ def calculate_acceleration(planet_position):
     # Calculate coordinates and vector module of planet
     x = r_sun[0] - planet_position[0]
     y = r_sun[1] - planet_position[1]
-
+    d = np.sqrt(x ** 2 + y ** 2)
     # Check if provided coordinates are in the same vector space or else notify a discrepancy
     if len(r_sun) == len(planet_position) == 2:
-        d = np.sqrt(x**2 + y**2)
         # Calculate gravitational acceleration
-        acceleration_x = ((G_Earth * M_Earth) / d ** 2) * (x / d)
-        acceleration_y = ((G_Earth * M_Earth) / d ** 2) * (y / d)
+        acceleration_x = ((universal_G * M_Sun) / d ** 2) * (x / d)
+        acceleration_y = ((universal_G * M_Sun) / d ** 2) * (y / d)
         acceleration_2Dlist = [acceleration_x, acceleration_y]
         return acceleration_2Dlist
         # Returns a list of two elements with the x and y coordinates of acceleration vector
