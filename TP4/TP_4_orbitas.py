@@ -24,22 +24,6 @@ plt.style.use('dark_background')
 """ Use of scipy library (https://docs.scipy.org/doc/scipy/reference/constants.html)
 Is restricted due to possible overlapping of variables. """
 
-# Declaration of variables
-universal_G = 6.672 * 10 ** -11  # Gravitational constants. Units: N*m^2/kg^2
-M_Sun = 1.98 * 10 ** 30  # Sun's mass, units=kg
-earth_day_sec = 60 * 60 * 24  # Duration of a day on Earth measured in seconds
-total_earth_days = 730  # Simulated Earth's Days
-
-"Earth's first position vectors (measured in meters) must contain (x,y) data of two days."
-# Position of Earth on Day 0 in R2 plane
-earth_r_day0 = [-147095000000.0, 0.0]
-# Position of Earth on Day 1 in R2 plane
-earth_r_day1 = [-147095000000.0, 2617920000.0]
-
-# Sun's position: we consider it a fixed constant
-r_sun = [0, 0]
-
-
 def calculate_acceleration(planet_position):
     # Input must be a list with x and y coordinates of planet
 
@@ -63,18 +47,6 @@ def calculate_acceleration(planet_position):
 Define variables and functions as necessary in order to calculate the first two acceleration vectors
 This will allow the use of Verlet's algorithm to generate more vectors"""
 
-# Lists that will contain the x and y coordinates of calculated accelerations
-earth_x_accelerations = []
-earth_y_accelerations = []
-
-day_acc = calculate_acceleration(earth_r_day0)
-earth_x_accelerations.append(day_acc[0])
-earth_y_accelerations.append(day_acc[1])
-
-day_acc = calculate_acceleration(earth_r_day1)
-earth_x_accelerations.append(day_acc[0])
-earth_y_accelerations.append(day_acc[1])
-
 
 """ Exercise 3
 Define a function that uses Verlet's algorithm.
@@ -94,8 +66,6 @@ def int_verlet_calc(pos_anterior, pos_actual, acceleration_actual, dt):
 
 """ Exercise 4
 Make a cycle that uses int_verlet_calc to calculate and save the position, acceleration and Earth day in lists"""
-
-initial_acc = [earth_x_accelerations[1], earth_y_accelerations[1]]
 
 
 def calculate_orbit(planet_position_dia, planet_position_ant, actual_acc, days):
@@ -128,20 +98,15 @@ def calculate_orbit(planet_position_dia, planet_position_ant, actual_acc, days):
     return rx_list, ry_list, acc_x_list, acc_y_list, dias_list
 
 
-x_positions, y_positions, x_accelerations, y_accelerations, Dias = calculate_orbit(earth_r_day1,
-                                                                                   earth_r_day0,
-                                                                                   initial_acc,
-                                                                                   total_earth_days)
-
 """ Exercise 5
 Graph: trajectory in (x,y) plane """
 
 
-def picture_planet_track(data_x_positions, data_y_positions, planet_name, filename):
+def picture_planet_track(data_x_earth, data_y_earth, planet_name, filename):
     plt.clf()
     # check that lists with coordinates have the same size
-    if len(data_x_positions) == len(data_y_positions):
-        plt.plot(data_x_positions, data_y_positions, color='grey')
+    if len(data_x_earth) == len(data_y_earth):
+        plt.plot(data_x_earth, data_y_earth, color='grey')
         # generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
         plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
         plt.title(planet_name+"'s trajectory")
@@ -154,8 +119,6 @@ def picture_planet_track(data_x_positions, data_y_positions, planet_name, filena
         print('Error: There is a discrepancy between the number of days and the quantity of coordinates')
 
 
-picture_planet_track(x_positions, y_positions, "Earth", "EarthOrbit_NormalVel.jpg")
-
 """ Exercise 6
 Graph: acceleration as a function of time (measured in days)
 Later generate an animated video of the translational movement. We wil need to handle the images that compose it. """
@@ -163,22 +126,15 @@ Later generate an animated video of the translational movement. We wil need to h
 
 def picture_planet_ACCvsTIME(x_or_y, data_1d_acc, planet_name, filename):
     plt.clf()
-    # check that lists are equally sized
-    if len(Dias) == len(data_1d_acc):
-        plt.plot(Dias, data_1d_acc, color='cyan')
-        plt.title(planet_name+"'s acceleration on "+x_or_y+" axis")
-        plt.xlabel('Days')
-        plt.ylabel('Acceleration (meters/seconds^2)')
-        plt.savefig(filename)
-        print("\n Plot saved as " + filename)
-        # plt.show()
-    else:
-        print('Error: There is a discrepancy between the number of days and the quantity of acceleration modules')
+    plt.plot(data_1d_acc, color='cyan')
+    plt.title(planet_name+"'s acceleration on "+x_or_y+" axis")
+    plt.xlabel('Days')
+    plt.ylabel('Acceleration (meters/seconds^2)')
+    plt.savefig(filename)
+    print("\n Plot saved as " + filename)
+    # plt.show()
 
 
-picture_planet_ACCvsTIME("x", x_accelerations, "Earth", "Earth_x_acceleration.jpg")
-
-picture_planet_ACCvsTIME("y", y_accelerations, "Earth", "Earth_y_acceleration.jpg")
 
 """ Exercise 7
 Elaborate a function that receives positions and a day and makes a graphic of the planet's trajectory
@@ -198,7 +154,7 @@ def make_orbit_picture(list_x, list_y, dia):
     # generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
     plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
 
-    # generate Earth's positions as a smaller blue dot
+    # generate planet's positions as a smaller blue dot
     plt.plot(list_x[dia + 1], list_y[dia + 1], 'bo', ms=10)
 
     # plt.show()  # remove comment to show plot
@@ -224,54 +180,17 @@ def make_orbit_video(list_x, list_y, name_of_video):
     print('\n Video saved as ' + name_of_video + '.mp4')
 
 
-make_orbit_video(x_positions, y_positions, 'Normal translational movement')
-
-
 """ Exercise 9
 How would Earth's trajectory change if it moved twice as fast?
 Hint: to reflect this modification, me must double the value of list_y[1] and calculate it all over again
-
 Answer: initially we would have a circular orbit but then it follows a somewhat linear trajectory
 Remember that previously in the code list_y[1] = earth_r_day1[1]
 """
 
-initial_r2 = [earth_r_day1[0], earth_r_day1[1] * 2]
 
-# Calculate again the acceleration of Day 1:
-initial_acc2 = calculate_acceleration(initial_r2)
-
-x_positions2, y_positions2, x_accelerations2, y_accelerations2, Dias2 = calculate_orbit(initial_r2,
-                                                                                        earth_r_day0,
-                                                                                        initial_acc2,
-                                                                                        total_earth_days)
-
-
-picture_planet_track(x_positions2, y_positions2, "Earth", "EarthOrbit_TwiceVel.jpg")
-
-
-""" REMOVE MULTILINE COMMENT FOR TESTS
-make_orbit_picture(x_positions2, y_positions2, 60)
-"""
-
-
-""" Exercise 10
-What if instead Earth went half as fast? Should a day be shorter?
+""" Exercise 10 What if instead Earth went half as fast? Should a day be shorter?
 Answer: now the Earth moves too close or too far from the Sun
 """
-
-
-initial_r3 = [earth_r_day1[0], earth_r_day1[1] * 0.5]
-# Calculate again the acceleration of Day 1:
-initial_acc3 = calculate_acceleration(initial_r3)  # acceleration en x , acceleration en y en el primer dia
-
-x_positions3, y_positions3, x_accelerations3, y_accelerations3, Dias3 = calculate_orbit(initial_r3,
-                                                                                        earth_r_day0,
-                                                                                        initial_acc3,
-                                                                                        total_earth_days)
-
-picture_planet_track(x_positions3, y_positions3, "Earth", "EarthOrbit_HalfVel.jpg")
-
-# make_orbit_picture(x_positions3, y_positions3, 60)
 
 
 """ Exercise 11
@@ -317,12 +236,6 @@ def trajectory_plus_acc_video(list_x, list_y, acceleration_x, acceleration_y, na
     print('\n Video saved as ' + name_of_video + '.mp4')
 
 
-trajectory_plus_acc_video(x_positions,
-                          y_positions,
-                          x_accelerations,
-                          y_accelerations,
-                          'Normal orbit with acceleration')
-
 """ Exercise 12 (optional)
 How would you calculate velocity of each day? Display as a function of time
 """
@@ -338,3 +251,144 @@ Search on NASA's web page to obtain the position of Earth on your birthdate
 Try to determine when was the first perihelion and aphelion of your life (min and max distance to the Sun)
 See also https://www.timeanddate.com/date/dateadd.html
 """
+
+# Declaration of global variables
+AU = 149597870700  # astronomical units au in meters
+universal_G = 6.672 * 10 ** -11  # Gravitational constants. Units: N*m^2/kg^2
+M_Sun = 1.98 * 10 ** 30  # Sun's mass, units=kg
+r_sun = [0, 0]  # Sun's position: we consider it a fixed constant
+earth_day_sec = 60 * 60 * 24  # Duration of a day on Earth measured in seconds
+total_earth_days = 730  # Simulated Earth's Days
+
+" --- Mercury's trajectory data ------------------"
+# Position of Mercury on Day 0 in R2 plane
+mercury_r_day0 = [3.527194038524470 * 0.1 * AU, -3.992007990089807 * 0.01 * AU]
+# Position of Mercury on Day 1 in R2 plane
+mercury_r_day1 = [3.496966842279213 * 0.1 * AU, -1.064190753450797 * 0.01 * AU]
+# Calculate orbit
+x_mercury, y_mercury, x_acc_mercury, y_acc_mercury, MercuryDaysList = calculate_orbit(mercury_r_day1,
+                                                                                      mercury_r_day0,
+                                                                                      calculate_acceleration(mercury_r_day1),
+                                                                                      total_earth_days)
+
+" --- Venus's trajectory data ------------------"
+# Position of Body on Day 0 in R2 plane
+venus_r_day0 = [6.699101302128549 * 0.1 * AU, -2.590495337952708 * 0.1 * AU]
+# Position of Body on Day 1 in R2 plane
+venus_r_day1 = [6.769025185681680 * 0.1 * AU, -2.402092653508008 * 0.1 * AU]
+# Calculate orbit
+x_venus, y_venus, x_acc_venus, y_acc_venus, VenusDaysList = calculate_orbit(venus_r_day1,
+                                                                            venus_r_day0,
+                                                                            calculate_acceleration(venus_r_day1),
+                                                                            total_earth_days)
+
+" --- Earth's trajectory data ------------------"
+# Position of Earth on Day 0 in R2 plane
+earth_r_day0 = [-9.893730268079107 * 0.1 * AU, 1.525312641360373 * 0.1 * AU]
+# Position of Earth on Day 1 in R2 plane
+earth_r_day1 = [-9.920501473347642 * 0.1 * AU, 1.354183249761766 * 0.1 * AU]
+# Calculate orbit
+x_earth, y_earth, x_acc_earth, y_acc_earth, EarthDaysList = calculate_orbit(earth_r_day1,
+                                                                            earth_r_day0,
+                                                                            calculate_acceleration(earth_r_day1),
+                                                                            total_earth_days)
+
+" --- Mars's trajectory data ------------------"
+# Position of Mars on Day 0 in R2 plane
+mars_r_day0 = [-1.655510318528293 * AU, 1.657061664751504 * 0.1 * AU]
+# Position of Mars on Day 1 in R2 plane
+mars_r_day1 = [-1.656291363095773 * AU, 1.529609327727200 * 0.1 * AU]
+# Calculate orbit
+x_mars, y_mars, x_acc_mars, y_acc_mars, MarsDaysList = calculate_orbit(mars_r_day1,
+                                                                    mars_r_day0,
+                                                                    calculate_acceleration(mars_r_day1),
+                                                                    total_earth_days)
+
+
+" --- Body's trajectory data ------------------"
+""" first position vectors (measured in meters) must contain (x,y) data of two days.
+# Position of Body on Day 0 in R2 plane
+body_r_day0 = [ * AU,  * AU]
+# Position of Body on Day 1 in R2 plane
+body_r_day1 = [ * AU,  * AU]
+# Calculate orbit
+x_body, y_body, x_acc_body, y_acc_body, BodyDaysList = calculate_orbit(body_r_day1,
+                                                                    body_r_day0,
+                                                                    calculate_acceleration(body_r_day1),
+                                                                    total_earth_days)
+"""
+
+" The following resolves exercises 5 to 11 of assignment --------------------"
+
+# Exercise 5
+picture_planet_track(x_earth, y_earth, "Earth", "EarthOrbit.jpg")
+
+# Exercise 6
+picture_planet_ACCvsTIME("x", x_earth, "Earth", "Earth_x_acceleration.jpg")
+
+picture_planet_ACCvsTIME("y", y_earth, "Earth", "Earth_y_acceleration.jpg")
+
+# Exercise 8
+make_orbit_video(x_earth, y_earth, 'Normal translational movement')
+
+
+# Exercise 9: if Earth moved twice as fast
+initial_r2 = [earth_r_day1[0], earth_r_day1[1] * 2]
+
+x_earth2, y_earth2, x_acc_earth2, y_acc_earth2, Dias2 = calculate_orbit(initial_r2,
+                                                                                        earth_r_day0,
+                                                                                        calculate_acceleration(initial_r2),
+                                                                                        total_earth_days)
+
+picture_planet_track(x_earth2, y_earth2, "Earth", "EarthOrbit_TwiceVel.jpg")
+
+
+# Exercise 10: if Earth moved half as fast
+initial_r3 = [earth_r_day1[0], earth_r_day1[1] * 0.5]
+
+x_earth3, y_earth3, x_acc_earth3, y_acc_earth3, Dias3 = calculate_orbit(initial_r3,
+                                                                                        earth_r_day0,
+                                                                                        calculate_acceleration(initial_r3),
+                                                                                        total_earth_days)
+
+picture_planet_track(x_earth3, y_earth3, "Earth", "EarthOrbit_HalfVel.jpg")
+
+# Exercise 11: normal trajectory with acceleration vector (video)
+trajectory_plus_acc_video(x_earth,
+                          y_earth,
+                          x_acc_earth,
+                          y_acc_earth,
+                          'Normal orbit with acceleration')
+
+
+
+# Show picture of first four planets
+day = 1
+plt.clf()
+plt.title("4 trajectories")
+plt.xlabel('x coordinates (meters)')
+plt.ylabel('y coordinates (meters)')
+
+# generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
+plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
+
+# Plot Mercury's orbit
+plt.plot(x_mercury, y_mercury, color='grey', linewidth= 0.5)  # trajectory
+plt.plot(x_mercury[day], y_mercury[day], marker='o', color='chocolate', ms=3)  # show planet as a smaller dot
+
+# Plot Venus's orbit
+plt.plot(x_venus, y_venus, color='grey', linewidth= 0.5)
+plt.plot(x_venus[day], y_venus[day], marker='o', color='sandybrown', ms=9)
+
+# Plot Earth's orbit
+plt.plot(x_earth, y_earth, color='grey', linewidth= 0.5)
+plt.plot(x_earth[day], y_earth[day], marker='o', color='royalblue', ms=10)
+
+# Plot Mars' orbit
+plt.plot(x_mars, y_mars, color='grey', linewidth= 0.5)
+plt.plot(x_mars[day], y_mars[day], marker='o', color='orangered', ms=5)
+
+plt.show()
+
+
+
