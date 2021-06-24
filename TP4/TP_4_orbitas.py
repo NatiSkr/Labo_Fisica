@@ -8,7 +8,7 @@ Be sure to explicit the magnitude of vectors as the type "float" in order for np
 *   `r_x_earth = [-147095000000.0, -147095000000.0]`
 *   `r_y_earth = [0.0, 2617920000.0]`
 *   `dt = 60 * 60 * 24` (Earth day in seconds).
-*   `total_earth_days = 400` (simulate a bit more than 1 Earth Year)
+*   `earth1y = 400` (simulate a bit more than 1 Earth Year)
 *   `x_sol = 0, y_sol = 0` (Suppose that the center of the system , the Sun, is fixed)
 
 To simulate the movement of the planet around the Sun, define some functions that return the acceleration
@@ -19,6 +19,7 @@ Use the positions of both celestial bodies (refer to the doc to see formulas)
 import numpy as np
 import matplotlib.pyplot as plt
 import imageio
+import imshow
 plt.style.use('dark_background')
 
 """ Use of scipy library (https://docs.scipy.org/doc/scipy/reference/constants.html)
@@ -55,11 +56,12 @@ Then it must return the next position vector for the following Earth's day
 """
 
 
-def int_verlet_calc(pos_anterior, pos_actual, acceleration_actual, dt):
+def int_verlet_calc(pos_anterior, pos_actual, acceleration_actual):
     # New position in x
-    pos_x = 2 * pos_actual[0] - pos_anterior[0] + acceleration_actual[0] * dt ** 2
+    # dt is the day on earth in seconds 60*60*24=86400s
+    pos_x = 2 * pos_actual[0] - pos_anterior[0] + acceleration_actual[0] * 86400 ** 2
     # New position in y
-    pos_y = 2 * pos_actual[1] - pos_anterior[1] + acceleration_actual[1] * dt ** 2
+    pos_y = 2 * pos_actual[1] - pos_anterior[1] + acceleration_actual[1] * 86400 ** 2
     pos_posterior = [pos_x, pos_y]
     return pos_posterior  # returns list with new planet positions
 
@@ -70,12 +72,12 @@ Make a cycle that uses int_verlet_calc to calculate and save the position, accel
 
 def calculate_orbit(planet_position_dia, planet_position_ant, actual_acc, days):
     # Assign variables in local scope
-    r_anterior = planet_position_ant  # = [r_x_earth[0], r_y_earth[0]] # position on day 0
-    r_actual = planet_position_dia  # [r_x_earth[1], r_y_earth[1]] # position on day 1
+    r_anterior = planet_position_ant
+    r_actual = planet_position_dia
     # Assign 'actual' positions and accelerations as those of day 1
     dias_list = [1]
-    rx_list = [r_actual[0]]
-    ry_list = [r_actual[1]]
+    rx_list = [planet_position_dia[0]]
+    ry_list = [planet_position_dia[1]]
     acc_x_list = [actual_acc[0]]
     acc_y_list = [actual_acc[1]]
     for i in range(2, days + 1):
@@ -84,7 +86,7 @@ def calculate_orbit(planet_position_dia, planet_position_ant, actual_acc, days):
         # Calculate acceleration of current day
         acc_xy_list = calculate_acceleration(r_actual)
         # Calculate next position
-        r_posterior = int_verlet_calc(r_anterior, r_actual, acc_xy_list, earth_day_sec)
+        r_posterior = int_verlet_calc(r_anterior, r_actual, acc_xy_list)
         # Save new positions
         rx_list.append(r_posterior[0])
         ry_list.append(r_posterior[1])
@@ -95,7 +97,7 @@ def calculate_orbit(planet_position_dia, planet_position_ant, actual_acc, days):
         # Refresh last and current positions for next cycle
         r_anterior = r_actual
         r_actual = r_posterior
-    return rx_list, ry_list, acc_x_list, acc_y_list, dias_list
+    return rx_list, ry_list, acc_x_list, acc_y_list
 
 
 """ Exercise 5
@@ -141,10 +143,7 @@ Elaborate a function that receives positions and a day and makes a graphic of th
 and pictures the Sun a a reference and the planet's positions as a small circle."""
 
 
-def make_orbit_picture(list_x, list_y, dia):
-    # clear the figure as precaution
-    plt.clf()
-
+def make_orbit_picture(list_x, list_y, dia, planet_color):
     # generate a trajectory graph (x,y)
     plt.plot(list_x, list_y, 'grey')
     plt.title("Earth's orbit around the Sun. Day: " + str(dia))
@@ -155,7 +154,7 @@ def make_orbit_picture(list_x, list_y, dia):
     plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
 
     # generate planet's positions as a smaller blue dot
-    plt.plot(list_x[dia + 1], list_y[dia + 1], 'bo', ms=10)
+    plt.plot(list_x[dia + 1], list_y[dia + 1], planet_color, ms=10)
 
     # plt.show()  # remove comment to show plot
     return
@@ -170,8 +169,10 @@ def make_orbit_video(list_x, list_y, name_of_video):
     print('\n Preparing video, please wait ...')
     photos_list = []  # list with saves images
     for i in range(len(list_x)):
+        # clear the figure as precaution
+        plt.clf()
         if i % 2 == 0:  # Save one out of two images
-            make_orbit_picture(list_x, list_y, i)
+            make_orbit_picture(list_x, list_y, i, 'blue')
             plt.savefig(name_of_video + '.png')
             photos_list.append(imageio.imread(name_of_video + '.png'))
         # Verification test to corroborate saving
@@ -184,7 +185,7 @@ def make_orbit_video(list_x, list_y, name_of_video):
 How would Earth's trajectory change if it moved twice as fast?
 Hint: to reflect this modification, me must double the value of list_y[1] and calculate it all over again
 Answer: initially we would have a circular orbit but then it follows a somewhat linear trajectory
-Remember that previously in the code list_y[1] = earth_r_day1[1]
+Remember that previously in the code list_y[1] = dicc_earth['day1coord'][1]
 """
 
 
@@ -254,72 +255,128 @@ See also https://www.timeanddate.com/date/dateadd.html
 
 # Declaration of global variables
 AU = 149597870700  # astronomical units au in meters
-universal_G = 6.672 * 10 ** -11  # Gravitational constants. Units: N*m^2/kg^2
-M_Sun = 1.98 * 10 ** 30  # Sun's mass, units=kg
+universal_G = 6.67 * 10 ** -11  # Gravitational constants. Units: N*m^2/kg^2
+M_Sun = 1988500 * 10 ** 24  # Sun's mass, units=kg
 r_sun = [0, 0]  # Sun's position: we consider it a fixed constant
-earth_day_sec = 60 * 60 * 24  # Duration of a day on Earth measured in seconds
-total_earth_days = 730  # Simulated Earth's Days
+earth1y = 375  # Simulated Earth's Days
+std_size = 3 # earth size for plots
 
-" --- Mercury's trajectory data ------------------"
-# Position of Mercury on Day 0 in R2 plane
-mercury_r_day0 = [3.527194038524470 * 0.1 * AU, -3.992007990089807 * 0.01 * AU]
-# Position of Mercury on Day 1 in R2 plane
-mercury_r_day1 = [3.496966842279213 * 0.1 * AU, -1.064190753450797 * 0.01 * AU]
-# Calculate orbit
-x_mercury, y_mercury, x_acc_mercury, y_acc_mercury, MercuryDaysList = calculate_orbit(mercury_r_day1,
-                                                                                      mercury_r_day0,
-                                                                                      calculate_acceleration(mercury_r_day1),
-                                                                                      total_earth_days)
+" --- Mercury's data ------------------"
+dicc_mercury = {'name': 'Mercury',
+                'color': 'chocolate',
+                'relative size': std_size*0.3,
+                'period in days': int(0.25 * earth1y),
+                'day0coord': [3.527194038524470 * (10 ** -1) * AU, -3.992007990089807 * (10 ** -2) * AU],
+                'day1coord': [3.496966842279213 * (10 ** -1) * AU, -1.064190753450797 * (10 ** -2) * AU]
+                }
 
 " --- Venus's trajectory data ------------------"
-# Position of Body on Day 0 in R2 plane
-venus_r_day0 = [6.699101302128549 * 0.1 * AU, -2.590495337952708 * 0.1 * AU]
-# Position of Body on Day 1 in R2 plane
-venus_r_day1 = [6.769025185681680 * 0.1 * AU, -2.402092653508008 * 0.1 * AU]
-# Calculate orbit
-x_venus, y_venus, x_acc_venus, y_acc_venus, VenusDaysList = calculate_orbit(venus_r_day1,
-                                                                            venus_r_day0,
-                                                                            calculate_acceleration(venus_r_day1),
-                                                                            total_earth_days)
+dicc_venus = {'name': 'Venus',
+              'color': 'sandybrown',
+              'relative size': std_size*0.9,
+              'period in days': int(0.7 * earth1y),
+              'day0coord': [6.699101302128549 * (10 ** -1) * AU, -2.590495337952708 * (10 ** -1) * AU],
+              'day1coord': [6.769025185681680 * (10 ** -1) * AU, -2.402092653508008 * (10 ** -1) * AU]
+              }
 
 " --- Earth's trajectory data ------------------"
-# Position of Earth on Day 0 in R2 plane
-earth_r_day0 = [-9.893730268079107 * 0.1 * AU, 1.525312641360373 * 0.1 * AU]
-# Position of Earth on Day 1 in R2 plane
-earth_r_day1 = [-9.920501473347642 * 0.1 * AU, 1.354183249761766 * 0.1 * AU]
-# Calculate orbit
-x_earth, y_earth, x_acc_earth, y_acc_earth, EarthDaysList = calculate_orbit(earth_r_day1,
-                                                                            earth_r_day0,
-                                                                            calculate_acceleration(earth_r_day1),
-                                                                            total_earth_days)
+dicc_earth = {'name': 'Earth',
+              'color': 'limegreen',
+              'relative size': std_size,
+              'period in days': int(earth1y),
+              'day0coord': [-9.893730268079107 * (10 ** -1) * AU, 1.525312641360373 * (10 ** -1) * AU],
+              'day1coord': [-9.920501473347642 * (10 ** -1) * AU, 1.354183249761766 * (10 ** -1) * AU]
+              }
 
 " --- Mars's trajectory data ------------------"
-# Position of Mars on Day 0 in R2 plane
-mars_r_day0 = [-1.655510318528293 * AU, 1.657061664751504 * 0.1 * AU]
-# Position of Mars on Day 1 in R2 plane
-mars_r_day1 = [-1.656291363095773 * AU, 1.529609327727200 * 0.1 * AU]
-# Calculate orbit
-x_mars, y_mars, x_acc_mars, y_acc_mars, MarsDaysList = calculate_orbit(mars_r_day1,
-                                                                    mars_r_day0,
-                                                                    calculate_acceleration(mars_r_day1),
-                                                                    total_earth_days)
+dicc_mars = {'name': 'Mars',
+             'color': 'orangered',
+             'relative size': std_size*0.5,
+             'period in days': int(1.9 * earth1y),
+             'day0coord': [-1.655510318528293 * AU, 1.657061664751504 * (10 ** -1) * AU],
+             'day1coord': [-1.656291363095773 * AU, 1.529609327727200 * (10 ** -1) * AU]
+             }
 
+" --- Jupyter's trajectory data ------------------"
+dicc_jupyter = {'name': 'Jupyter',
+                'color': 'khaki',
+                'relative size': std_size*11,
+                'period in days': int(12 * earth1y),
+                'day0coord': [2.849574432688381 * AU, -4.234571266057721 * AU],
+                'day1coord': [2.855729459244833 * AU, -4.229999656426285 * AU]
+                }
 
-" --- Body's trajectory data ------------------"
-""" first position vectors (measured in meters) must contain (x,y) data of two days.
-# Position of Body on Day 0 in R2 plane
-body_r_day0 = [ * AU,  * AU]
-# Position of Body on Day 1 in R2 plane
-body_r_day1 = [ * AU,  * AU]
+" --- Saturn's trajectory data ------------------"
+dicc_saturn = {'name': 'Saturn',
+               'color': 'goldenrod',
+               'relative size': std_size*9,
+               'period in days': int(29 * earth1y),
+               'day0coord': [9.302046396124146 * AU, 1.588305128062075 * AU],
+               'day1coord': [9.300809480419099 * AU, 1.593792603601794 * AU]
+               }
+
+" --- Uranus's trajectory data ------------------"
+dicc_uranus = {'name': 'Uranus',
+               'color': 'lightskyblue',
+               'relative size': std_size*4,
+               'period in days': int(84 * earth1y),
+               'day0coord': [1.140614787022116 * 10 * AU, -1.618102574730362 * 10 * AU],
+               'day1coord': [1.140933328188972 * 10 * AU, -1.617894211828149 * 10 * AU]
+               }
+
+" --- Neptune's trajectory data ------------------"
+dicc_neptune = {'name': 'Neptune',
+                'color': 'royalblue',
+                'relative size': std_size*3.5,
+                'period in days': int(165 * earth1y),
+                'day0coord': [1.406373989566836 * 10 * AU, -2.666345412015452 * 10 * AU],
+                'day1coord': [1.406649648193033 * 10 * AU, -2.666197143806701 * 10 * AU]
+                }
+
+" Calculate Mercury's orbit"
+x_mercury, y_mercury, x_acc_mercury, y_acc_mercury = calculate_orbit(dicc_mercury['day1coord'],
+                                                                     dicc_mercury['day0coord'],
+                                                                     calculate_acceleration(dicc_mercury['day1coord']),
+                                                                     dicc_neptune['period in days'])
+" Calculate Venus's orbit"
+x_venus, y_venus, x_acc_venus, y_acc_venus = calculate_orbit(dicc_venus['day1coord'],
+                                                             dicc_venus['day0coord'],
+                                                             calculate_acceleration(dicc_venus['day1coord']),
+                                                             dicc_neptune['period in days'])
+" Calculate Earth's orbit"
+x_earth, y_earth, x_acc_earth, y_acc_earth = calculate_orbit(dicc_earth['day1coord'],
+                                                             dicc_earth['day0coord'],
+                                                             calculate_acceleration(dicc_earth['day1coord']),
+                                                             dicc_neptune['period in days'])
+" Calculate Mars's orbit"
+x_mars, y_mars, x_acc_mars, y_acc_mars = calculate_orbit(dicc_mars['day1coord'],
+                                                         dicc_mars['day0coord'],
+                                                         calculate_acceleration(dicc_mars['day1coord']),
+                                                         dicc_neptune['period in days'])
+" Calculate Jupyter's orbit"
+x_jupyter, y_jupyter, x_acc_jupyter, y_acc_jupyter = calculate_orbit(dicc_jupyter['day1coord'],
+                                                                     dicc_jupyter['day0coord'],
+                                                                     calculate_acceleration(dicc_jupyter['day1coord']),
+                                                                     dicc_neptune['period in days'])
+" Calculate Saturn's orbit"
+x_saturn, y_saturn, x_acc_saturn, y_acc_saturn = calculate_orbit(dicc_saturn['day1coord'],
+                                                                 dicc_saturn['day0coord'],
+                                                                 calculate_acceleration(dicc_saturn['day1coord']),
+                                                                 dicc_neptune['period in days'])
+" Calculate Uranus's orbit"
+x_uranus, y_uranus, x_acc_uranus, y_acc_uranus = calculate_orbit(dicc_uranus['day1coord'],
+                                                                 dicc_uranus['day0coord'],
+                                                                 calculate_acceleration(dicc_uranus['day1coord']),
+                                                                 dicc_neptune['period in days'])
 # Calculate orbit
-x_body, y_body, x_acc_body, y_acc_body, BodyDaysList = calculate_orbit(body_r_day1,
-                                                                    body_r_day0,
-                                                                    calculate_acceleration(body_r_day1),
-                                                                    total_earth_days)
-"""
+x_neptune, y_neptune, x_acc_neptune, y_acc_neptune = calculate_orbit(dicc_neptune['day1coord'],
+                                                                     dicc_neptune['day0coord'],
+                                                                     calculate_acceleration(dicc_neptune['day1coord']),
+                                                                     dicc_neptune['period in days'])
+
 
 " The following resolves exercises 5 to 11 of assignment --------------------"
-
+"""
 # Exercise 5
 picture_planet_track(x_earth, y_earth, "Earth", "EarthOrbit.jpg")
 
@@ -333,23 +390,17 @@ make_orbit_video(x_earth, y_earth, 'Normal translational movement')
 
 
 # Exercise 9: if Earth moved twice as fast
-initial_r2 = [earth_r_day1[0], earth_r_day1[1] * 2]
+initial_r2 = [dicc_earth['day1coord'][0], dicc_earth['day1coord'][1] * 2]
 
-x_earth2, y_earth2, x_acc_earth2, y_acc_earth2, Dias2 = calculate_orbit(initial_r2,
-                                                                                        earth_r_day0,
-                                                                                        calculate_acceleration(initial_r2),
-                                                                                        total_earth_days)
+x_earth2, y_earth2, x_acc_earth2, y_acc_earth2 = calculate_orbit(initial_r2, dicc_earth['day0coord'], calculate_acceleration(initial_r2), earth1y)
 
 picture_planet_track(x_earth2, y_earth2, "Earth", "EarthOrbit_TwiceVel.jpg")
 
 
 # Exercise 10: if Earth moved half as fast
-initial_r3 = [earth_r_day1[0], earth_r_day1[1] * 0.5]
+initial_r3 = [dicc_earth['day1coord'][0], dicc_earth['day1coord'][1] * 0.5]
 
-x_earth3, y_earth3, x_acc_earth3, y_acc_earth3, Dias3 = calculate_orbit(initial_r3,
-                                                                                        earth_r_day0,
-                                                                                        calculate_acceleration(initial_r3),
-                                                                                        total_earth_days)
+x_earth3, y_earth3, x_acc_earth3, y_acc_earth3 = calculate_orbit(initial_r3, dicc_earth['day0coord'], calculate_acceleration(initial_r3), earth1y)
 
 picture_planet_track(x_earth3, y_earth3, "Earth", "EarthOrbit_HalfVel.jpg")
 
@@ -360,35 +411,47 @@ trajectory_plus_acc_video(x_earth,
                           y_acc_earth,
                           'Normal orbit with acceleration')
 
+"""
 
+plt.close('all')
 
 # Show picture of first four planets
-day = 1
+
+def planetary_orbit(x_coord, y_coord, day, planet_dicc):
+    # trajectory plot
+    plt.plot(x_coord[0:planet_dicc['period in days']],
+             y_coord[0:planet_dicc['period in days']],
+             color=planet_dicc['color'], linewidth=0.5)
+    # planet marker
+    plt.plot(x_coord[day-1], y_coord[day-1],
+             marker='o',
+             markeredgecolor="white",
+             markeredgewidth=0.5,
+             color=planet_dicc['color'],
+             ms=planet_dicc['relative size'],
+             label=planet_dicc['name'])
+
+
+show_day = 1
 plt.clf()
-plt.title("4 trajectories")
-plt.xlabel('x coordinates (meters)')
-plt.ylabel('y coordinates (meters)')
+plt.close('all')
+
+fig_system = plt.figure(figsize=[15,15], dpi=200, edgecolor=None, tight_layout=True)
+
+planetary_orbit(x_mercury, y_mercury, show_day, dicc_mercury)
+planetary_orbit(x_venus, y_venus, show_day, dicc_venus)
+planetary_orbit(x_earth, y_earth, show_day, dicc_earth)
+planetary_orbit(x_mars, y_mars, show_day, dicc_mars)
+planetary_orbit(x_jupyter, y_jupyter, show_day, dicc_jupyter)
+planetary_orbit(x_saturn, y_saturn, show_day, dicc_saturn)
+planetary_orbit(x_uranus, y_uranus, show_day, dicc_uranus)
+planetary_orbit(x_neptune, y_neptune, show_day, dicc_neptune)
 
 # generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
-plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
-
-# Plot Mercury's orbit
-plt.plot(x_mercury, y_mercury, color='grey', linewidth= 0.5)  # trajectory
-plt.plot(x_mercury[day], y_mercury[day], marker='o', color='chocolate', ms=3)  # show planet as a smaller dot
-
-# Plot Venus's orbit
-plt.plot(x_venus, y_venus, color='grey', linewidth= 0.5)
-plt.plot(x_venus[day], y_venus[day], marker='o', color='sandybrown', ms=9)
-
-# Plot Earth's orbit
-plt.plot(x_earth, y_earth, color='grey', linewidth= 0.5)
-plt.plot(x_earth[day], y_earth[day], marker='o', color='royalblue', ms=10)
-
-# Plot Mars' orbit
-plt.plot(x_mars, y_mars, color='grey', linewidth= 0.5)
-plt.plot(x_mars[day], y_mars[day], marker='o', color='orangered', ms=5)
-
+plt.plot(r_sun[0], r_sun[1], 'yo', ms=std_size)
+plt.legend(loc='upper left', markerscale=0.1, title='Sol System',
+           facecolor='midnightblue', edgecolor='darkmagenta', framealpha=1)
+plt.axis("off")
 plt.show()
-
-
-
+fig_system.savefig(fname='SolSystem.jpg', dpi=200)
+plt.close(fig_system)
