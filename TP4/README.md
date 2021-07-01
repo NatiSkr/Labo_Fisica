@@ -4,10 +4,10 @@ Guide available in pdf format (Spanish only). The practice's objective was to si
 
 Original format: Jupyter notebook .ipynb
 
-*Packages needed*
+**Packages needed**
 - numpy
 - matplotlib
-- iamgeio
+- imageio
 - alive_progress
 
 *Planet's coordinates* taken from NASA'S webpage at https://ssd.jpl.nasa.gov/horizons.cgi with the following settings:
