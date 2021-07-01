@@ -25,6 +25,16 @@ plt.style.use('dark_background')
 """ Use of scipy library (https://docs.scipy.org/doc/scipy/reference/constants.html)
 Is restricted due to possible overlapping of variables. """
 
+" Declaration of global variables"
+AU = 149597870700  # astronomical units au in meters
+universal_G = 6.67 * 10 ** -11  # Gravitational constants. Units: N*m^2/kg^2
+M_Sun = 1988500 * 10 ** 24  # Sun's mass, units=kg
+r_sun = [0, 0]  # Sun's position: we consider it a fixed constant (approximation, see Solar System Barycenter)
+earth1y = 375  # Simulated Earth's Days
+std_size = 2  # earth size for plots
+sun_size = std_size  # size relative to earth for plots, should be *109 but *1 is used instead for visualization
+# planetary sizes will be relative to earth
+
 
 def calculate_acceleration(planet_position):
     # Input must be a list with x and y coordinates of planet
@@ -71,14 +81,15 @@ def int_verlet_calc(pos_anterior, pos_actual, acceleration_actual):
 Make a cycle that uses int_verlet_calc to calculate and save the position, acceleration and Earth day in lists"""
 
 
-def calculate_orbit(planet_position_dia, planet_position_ant, actual_acc, days):
+def calculate_orbit(planet_dicc, tag, days):
     # Assign variables in local scope
-    r_anterior = planet_position_ant
-    r_actual = planet_position_dia
+    r_anterior = planet_dicc["day0coord"+tag]
+    r_actual = planet_dicc["day1coord"+tag]
+    actual_acc = calculate_acceleration(r_actual)
     # Assign 'actual' positions and accelerations as those of day 1
     dias_list = [1]
-    rx_list = [planet_position_dia[0]]
-    ry_list = [planet_position_dia[1]]
+    rx_list = [r_actual[0]]
+    ry_list = [r_actual[1]]
     acc_x_list = [actual_acc[0]]
     acc_y_list = [actual_acc[1]]
     for i in range(2, days + 1):
@@ -98,24 +109,30 @@ def calculate_orbit(planet_position_dia, planet_position_ant, actual_acc, days):
         # Refresh last and current positions for next cycle
         r_anterior = r_actual
         r_actual = r_posterior
-    return rx_list, ry_list, acc_x_list, acc_y_list
+    planet_dicc["x_coord" + tag] = rx_list
+    planet_dicc["y_coord" + tag] = ry_list
+    planet_dicc["x_acc" + tag] = acc_x_list
+    planet_dicc["y_acc" + tag] = acc_y_list
+    return
 
 
 """ Exercise 5
 Graph: trajectory in (x,y) plane """
 
 
-def picture_planet_track(data_x_planet, data_y_planet, planet_name, filename):
+def picture_planet_track(planet_dicc, last_day, filename):
     plt.clf()
     # check that lists with coordinates have the same size
-    if len(data_x_planet) == len(data_y_planet):
-        plt.plot(data_x_planet, data_y_planet, color='grey')
+    if len(planet_dicc["x_coord"]) == len(planet_dicc["x_coord"]):
+        plt.plot(planet_dicc["x_coord"][0:last_day-1],
+                 planet_dicc["y_coord"][0:last_day-1],
+                 color='grey')
         # generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
-        plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
-        plt.title(planet_name+"'s trajectory")
+        plt.plot(r_sun[0], r_sun[1], 'yo', ms=sun_size)
+        plt.title(planet_dicc["name"]+"'s trajectory")
         plt.xlabel('x coordinates (meters)')
         plt.ylabel('y coordinates (meters)')
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=200)
         print("\n Plot saved as "+filename)
         # plt.show()
     else:
@@ -127,13 +144,13 @@ Graph: acceleration as a function of time (measured in days)
 Later generate an animated video of the translational movement. We wil need to handle the images that compose it. """
 
 
-def picture_planet_ACCvsTIME(x_or_y, data_1d_acc, planet_name, filename):
+def picture_planet_ACCvsTIME(x_or_y, planet_dicc, tag, filename):
     plt.clf()
-    plt.plot(data_1d_acc, color='cyan')
-    plt.title(planet_name+"'s acceleration on "+x_or_y+" axis")
+    plt.plot(planet_dicc[x_or_y + "_coord"+tag][0:earth1y-1], color='cyan')
+    plt.title(planet_dicc["name"]+ "'s acceleration on "+x_or_y+" axis")
     plt.xlabel('Days')
     plt.ylabel('Acceleration (meters/seconds^2)')
-    plt.savefig(filename)
+    plt.savefig(filename, dpi=200)
     print("\n Plot saved as " + filename)
     # plt.show()
 
@@ -143,18 +160,29 @@ Elaborate a function that receives positions and a day and makes a graphic of th
 and pictures the Sun a a reference and the planet's positions as a small circle."""
 
 
-def make_orbit_picture(list_x, list_y, dia, planet_color):
+def make_orbit_picture(planet_dicc, tag, dia):
+    list_x = planet_dicc["x_coord" + tag]
+    list_y = planet_dicc["y_coord" + tag]
     # generate a trajectory graph (x,y)
-    plt.plot(list_x, list_y, 'grey')
+    orbit1y = planet_dicc["period in days"]+1
+    plt.plot(list_x[0:orbit1y],
+             list_y[0:orbit1y],
+             'grey')
     plt.title("Earth's orbit around the Sun. Day: " + str(dia))
     plt.xlabel('x coordinates (meters)')
     plt.ylabel('y coordinates (meters)')
 
     # generate Sun's position in the graph. ’yo ’ means a yellow dot, ms indicates its size
-    plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
+    plt.plot(r_sun[0], r_sun[1], 'yo', ms=sun_size)
 
-    # generate planet's positions as a smaller blue dot
-    plt.plot(list_x[dia + 1], list_y[dia + 1], planet_color, ms=10)
+    # planet marker
+    plt.plot(list_x[dia], list_y[dia],
+             marker='o',
+             markeredgecolor="white",
+             markeredgewidth=0.5,
+             color=planet_dicc['color'],
+             ms=planet_dicc['relative size'],
+             label=planet_dicc['name'])
 
     # plt.show()  # remove comment to show plot
     return
@@ -165,15 +193,17 @@ Make a function that generates and saves an animation with imageio, following th
 """
 
 
-def make_orbit_video(list_x, list_y, name_of_video):
+def make_orbit_video(planet_dicc, tag, last_day, name_of_video):
+    list_x = planet_dicc["x_coord" + tag]
+    list_y = planet_dicc["y_coord" + tag]
     print('\n Preparing video, please wait ...')
     photos_list = []  # list with saves images
-    for i in range(len(list_x)):
+    for i in range(last_day):
         # clear the figure as precaution
         plt.clf()
         if i % 2 == 0:  # Save one out of two images
-            make_orbit_picture(list_x, list_y, i, 'blue')
-            plt.savefig(name_of_video + '.png')
+            make_orbit_picture(planet_dicc, tag, i)
+            plt.savefig(name_of_video + '.png', dpi=200)
             photos_list.append(imageio.imread(name_of_video + '.png'))
         # Verification test to corroborate saving
         # print (str(i) + ' out of ' +str(len( list_x ) ) + ' saves images')
@@ -201,49 +231,62 @@ The matplotlib function (x1,y1,x2,y2) may be useful, where 1 is the origin and 2
 """
 
 
-def trajectory_plus_acc_picture(list_x, list_y, acceleration_x, acceleration_y, dia):
+def trajectory_plus_acc_picture(planet_dicc, tag, dia):
+    # local variables
+    list_x = planet_dicc["x_coord" + tag]
+    list_y = planet_dicc["y_coord" + tag]
+    acceleration_x = planet_dicc["x_acc" + tag]
+    acceleration_y = planet_dicc["y_acc" + tag]
+
     # clear the plotted figure
     plt.clf()
 
     # display trajectory
-    plt.plot(list_x, list_y, 'grey')
+    orbit1y = planet_dicc["period in days"]+1
+    plt.plot(list_x[0:orbit1y],
+             list_y[0:orbit1y],
+             'grey')
     plt.title("Earth's trajectory around the Sun. Day: " + str(dia))
 
     # display Sun's position
-    plt.plot(r_sun[0], r_sun[1], 'yo', ms=20)
-
-    # display Earth's position
-    plt.plot(list_x[dia + 1], list_y[dia + 1], 'bo', ms=10)
+    plt.plot(r_sun[0], r_sun[1], 'yo', ms=sun_size)
 
     # display acceleration vector
     plt.arrow(list_x[dia], list_y[dia],
-              acceleration_x[dia] * 10 ** 12.5,
-              acceleration_y[dia] * 10 ** 12.5,
+              acceleration_x[dia+1] * 10 ** 12.5,
+              acceleration_y[dia+1] * 10 ** 12.5,
               width=10 ** 9.5,
               color='green')
+
+    # display Earth's position as a marker
+    plt.plot(list_x[dia], list_y[dia],
+             marker='o',
+             markeredgecolor="white",
+             markeredgewidth=0.5,
+             color=planet_dicc['color'],
+             ms=planet_dicc['relative size'],
+             label=planet_dicc['name'])
     return
 
 
-def trajectory_plus_acc_video(list_x, list_y, acceleration_x, acceleration_y, name_of_video):
+def trajectory_plus_acc_video(planet_dicc, tag, days, name_of_video):
+    # local variables
+    list_x = planet_dicc["x_coord" + tag]
+    list_y = planet_dicc["y_coord" + tag]
+    acceleration_x = planet_dicc["x_acc" + tag]
+    acceleration_y = planet_dicc["y_acc" + tag]
+
     print('\n Preparing video, please wait ...')
     photos_list = []  # save images in a list
-    for i in range(len(list_x)):
+    for i in range(days):
         if i % 2 == 0:  # save one out of two pictures
-            trajectory_plus_acc_picture(list_x, list_y, acceleration_x, acceleration_y, i)
-            plt.savefig(name_of_video + '.png')
+            trajectory_plus_acc_picture(planet_dicc, tag, i)
+            plt.savefig(name_of_video + '.png', dpi=200)
             photos_list.append(imageio.imread(name_of_video + '.png'))
         # print (str(i) + ' out of ' +str(len( list_x ) ) + 'saves pictures') # test saving
     imageio.mimsave(name_of_video + '.mp4', photos_list)  # create video
     print('\n Video saved as ' + name_of_video + '.mp4')
 
-
-# Declaration of global variables
-AU = 149597870700  # astronomical units au in meters
-universal_G = 6.67 * 10 ** -11  # Gravitational constants. Units: N*m^2/kg^2
-M_Sun = 1988500 * 10 ** 24  # Sun's mass, units=kg
-r_sun = [0, 0]  # Sun's position: we consider it a fixed constant
-earth1y = 375  # Simulated Earth's Days
-std_size = 3 # earth size for plots
 
 " --- Mercury's data ------------------"
 mercury = {'name': 'Mercury',
@@ -318,82 +361,71 @@ neptune = {'name': 'Neptune',
            }
 
 " Calculate Mercury's orbit"
-mercury["x_coord"], mercury["y_coord"], x_acc_mercury, y_acc_mercury = calculate_orbit(mercury['day1coord'],
-                                                                     mercury['day0coord'],
-                                                                     calculate_acceleration(mercury['day1coord']),
-                                                                     neptune['period in days'])
+calculate_orbit(mercury, "",
+                neptune['period in days'])
+
 " Calculate Venus's orbit"
-venus["x_coord"], venus["y_coord"], x_acc_venus, y_acc_venus = calculate_orbit(venus['day1coord'],
-                                                             venus['day0coord'],
-                                                             calculate_acceleration(venus['day1coord']),
-                                                             neptune['period in days'])
+calculate_orbit(venus, "",
+                neptune['period in days'])
+
 " Calculate Earth's orbit"
-earth["x_coord"], earth["y_coord"], x_acc_earth, y_acc_earth = calculate_orbit(earth['day1coord'],
-                                                             earth['day0coord'],
-                                                             calculate_acceleration(earth['day1coord']),
-                                                             neptune['period in days'])
+calculate_orbit(earth, "",
+                neptune['period in days'])
+
 " Calculate Mars's orbit"
-mars["x_coord"], mars["y_coord"], x_acc_mars, y_acc_mars = calculate_orbit(mars['day1coord'],
-                                                         mars['day0coord'],
-                                                         calculate_acceleration(mars['day1coord']),
-                                                         neptune['period in days'])
+calculate_orbit(mars, "",
+                neptune['period in days'])
+
 " Calculate Jupyter's orbit"
-jupyter["x_coord"], jupyter["y_coord"], x_acc_jupyter, y_acc_jupyter = calculate_orbit(jupyter['day1coord'],
-                                                                     jupyter['day0coord'],
-                                                                     calculate_acceleration(jupyter['day1coord']),
-                                                                     neptune['period in days'])
+calculate_orbit(jupyter, "",
+                neptune['period in days'])
+
 " Calculate Saturn's orbit"
-saturn["x_coord"], saturn["y_coord"], x_acc_saturn, y_acc_saturn = calculate_orbit(saturn['day1coord'],
-                                                                 saturn['day0coord'],
-                                                                 calculate_acceleration(saturn['day1coord']),
-                                                                 neptune['period in days'])
+calculate_orbit(saturn, "",
+                neptune['period in days'])
+
 " Calculate Uranus's orbit"
-uranus["x_coord"], uranus["y_coord"], x_acc_uranus, y_acc_uranus = calculate_orbit(uranus['day1coord'],
-                                                                 uranus['day0coord'],
-                                                                 calculate_acceleration(uranus['day1coord']),
-                                                                 neptune['period in days'])
+calculate_orbit(uranus, "",
+                neptune['period in days'])
+
 "Calculate Neptune's orbit"
-neptune["x_coord"], neptune["y_coord"], x_acc_neptune, y_acc_neptune = calculate_orbit(neptune['day1coord'],
-                                                                     neptune['day0coord'],
-                                                                     calculate_acceleration(neptune['day1coord']),
-                                                                     neptune['period in days'])
+calculate_orbit(neptune, "",
+                neptune['period in days'])
 
 
 " The following resolves exercises 5 to 11 of assignment --------------------"
 
 # Exercise 5
-picture_planet_track(earth["x_coord"], earth["y_coord"], "Earth", "EarthOrbit.jpg")
+picture_planet_track(earth, earth1y, "EarthOrbit.jpg")
 
 # Exercise 6
-picture_planet_ACCvsTIME("x", earth["x_coord"], "Earth", "Earth_x_acceleration.jpg")
+picture_planet_ACCvsTIME("x", earth, "", "Earth_x_acceleration.jpg")
 
-picture_planet_ACCvsTIME("y", earth["y_coord"], "Earth", "Earth_y_acceleration.jpg")
+picture_planet_ACCvsTIME("y", earth, "", "Earth_y_acceleration.jpg")
 
 # Exercise 8
-make_orbit_video(earth["x_coord"], earth["y_coord"], 'Normal translational movement')
+make_orbit_video(earth, "", 400, 'Normal translational movement')
 
 
 # Exercise 9: if Earth moved twice as fast
-initial_r2 = [earth['day1coord'][0], earth['day1coord'][1] * 2]
+earth["day0coordfaster"] = earth["day0coord"]
+earth["day1coordfaster"] = [earth['day1coord'][0], earth['day1coord'][1] * 2]
+calculate_orbit(earth, "faster",
+                earth1y)
 
-x_earth2, y_earth2, x_acc_earth2, y_acc_earth2 = calculate_orbit(initial_r2, earth['day0coord'], calculate_acceleration(initial_r2), earth1y)
-
-picture_planet_track(x_earth2, y_earth2, "Earth", "EarthOrbit_TwiceVel.jpg")
+picture_planet_track(earth, earth1y, "EarthOrbit_TwiceVel.jpg")
 
 
 # Exercise 10: if Earth moved half as fast
-initial_r3 = [earth['day1coord'][0], earth['day1coord'][1] * 0.5]
+earth["day0coordslower"] = earth["day0coord"]
+earth["day1coordslower"] = [earth['day1coord'][0], earth['day1coord'][1] * 0.5]
+calculate_orbit(earth, "slower",
+                earth1y)
 
-x_earth3, y_earth3, x_acc_earth3, y_acc_earth3 = calculate_orbit(initial_r3, earth['day0coord'], calculate_acceleration(initial_r3), earth1y)
-
-picture_planet_track(x_earth3, y_earth3, "Earth", "EarthOrbit_HalfVel.jpg")
+picture_planet_track(earth, earth1y, "EarthOrbit_HalfVel.jpg")
 
 # Exercise 11: normal trajectory with acceleration vector (video)
-trajectory_plus_acc_video(earth["x_coord"],
-                          earth["y_coord"],
-                          x_acc_earth,
-                          y_acc_earth,
-                          'Normal orbit with acceleration')
+trajectory_plus_acc_video(earth, "", 400, 'Normal orbit with acceleration')
 
 
 
@@ -426,7 +458,7 @@ def make_system_pic(show_day, star_system):
         planetary_orbit(show_day, planet)
 
     # Plot Sun's position in the graph.
-    plt.plot(r_sun[0], r_sun[1], 'yo', ms=std_size)
+    plt.plot(r_sun[0], r_sun[1], 'yo', ms=sun_size)
     plt.legend(loc='upper left', markerscale=0.1, title='Sol System at day '+str(show_day),
                facecolor='midnightblue', edgecolor='darkmagenta', framealpha=1)
     plt.axis("off")
