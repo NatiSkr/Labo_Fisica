@@ -14,7 +14,7 @@ Original format: Jupyter notebook .ipynb
 
 - Ephemeris Type: VECTORS
 - Target Body: choose from list
-- Coordinate Origin: Solar System Barycenter (SSB) (also kwown as the Sun)
+- Coordinate Origin: Solar System Barycenter (SSB)
 - Time Span: two continuos day (Step = 1d), where Start = day0 and Stop = day1
 
 At results check the vector's X and Y dimensions of each day. Remember they are on astronomical units.
@@ -22,17 +22,21 @@ At results check the vector's X and Y dimensions of each day. Remember they are 
 The resulting objects with the trajectory won't start at day0 buy at day1. Nevertheless day0 is needed for computation
 
 
-*Fixed problems*
+**Fixed problems**
 
 - Video scale becomes dinamic when adding an acceleration vector
 
+- Singular images of a planet now have better resolution
 
-*Unsolved problems*
 
-- Singular images of Earth's trajectory have poor resolution and don't use esthetic values given by dicctionary
+**Unsolved problems**
 
-- Returned and saved figure given by make_system_pic mantain resolution. However when implemented in make_system_video they get re-sized to 3000x3000 giving error and/or distorting the frame.
+- Returned and saved figure given by make_system_pic mantain resolution. However when implemented in make_system_video they get re-sized to giving errors:
+
+IMAGEIO FFMPEG_WRITER WARNING: input image is not divisible by macro_block_size=16, resizing from (2979, 2979) to (2992, 2992) to ensure video compatibility with most codecs and players. To prevent resizing, make your input image divisible by the macro_block_size or set the macro_block_size to 1 (risking incompatibility).
+
+[swscaler @ 000002847d4d0000] Warning: data is not aligned! This can lead to a speed loss
 
 - Orbits needed by make_system_video are remade at each pass when I only wish the position to change. A possible solution would be to save each orbit separately as an object
 
-- Making the System animation seems to consume too many resources (related to previous issues)
+- Making the System animation may consume too many resources (related to previous issues)
